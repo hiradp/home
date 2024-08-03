@@ -1,0 +1,37 @@
+[user]
+  name = Hirad Pourtahmasbi
+  email = git@hirad.codes
+  signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEkOL318qjukhUfIb/PA0guz+DQiuCt0H4GCqWNON/Kz
+[alias]
+  br = branch
+  cm = commit -m
+  cma = commit -am
+  cmaa = commit --amend
+  co = "!co() { git checkout $1 || git checkout hiradp/$1;}; co"
+  cob = "!cob() { git checkout -b hiradp/$1;}; cob"
+  last = log -1 HEAD
+  oneline = log --oneline
+  oops = reset --hard HEAD^
+  psh = push
+  rs = restore --source=main
+  st = status
+  update = "!update() { git fetch -p && git merge origin/main;}; update"
+  wip = commit -am wip --no-verify
+  uncommit = reset HEAD^
+[init]
+  defaultBranch = main
+[push]
+  autoSetupRemote = true
+[gpg]
+  format = ssh
+[gpg "ssh"]
+  program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
+[commit]
+  gpgsign = true
+[core]
+  editor = nvim
+[filter "lfs"]
+  clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
+  process = git-lfs filter-process
+  required = true

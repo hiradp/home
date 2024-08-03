@@ -1,0 +1,13 @@
+# Hirad's Ghostty Configuration
+
+title = "👻"
+background-opacity = 0.95
+background-blur-radius = 20
+command = "/opt/homebrew/bin/fish -c 'tmux attach || tmux'"
+confirm-close-surface = false
+font-family = "Berkeley Mono"
+theme = "Dark+"
+window-decoration = true
+window-height = 65
+window-width = 175
+

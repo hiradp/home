@@ -1,0 +1,211 @@
+# Get editor completions based on the config schema
+"$schema" = 'https://starship.rs/config-schema.json'
+
+format = '''
+$time$kubernetes$pulumi$rust$golang
+$hostname$directory$git_branch$git_commit$git_state$git_status$git_metrics$cmd_duration
+$character'''
+
+# Inserts a blank line between shell prompts
+add_newline = true
+
+# --- Left Prompt ---
+[hostname]
+disabled = false
+format = '\[$hostname($style)\]'
+style = "bold red"
+ssh_only = true
+
+[time]
+disabled = false
+format = '\[[$time]($style)\]'
+style = "white"
+
+[directory]
+disabled = false
+format = '\[[$path]($style)[$read_only]($read_only_style)\]'
+truncation_length = 4
+truncation_symbol = "../"
+truncate_to_repo = false
+style = "white"
+
+[kubernetes]
+disabled = false
+format = '\[[$symbol:$context]($style)\]'
+style = 'cyan'
+symbol = 'k8s'
+
+[pulumi]
+disabled = false
+format = '\[[$symbol:$stack]($style)\]'
+symbol = 'pu'
+
+[cmd_duration]
+disabled = false
+show_milliseconds = true
+format = '\[[$duration]($style)\]'
+# --- End Left ---
+
+[fill]
+disabled = false
+symbol = ' '
+
+# --- Right Prompt ---
+[git_branch]
+disabled = false
+format = '\[[$symbol]($style):[$branch(:$remote_branch)]($style):'
+symbol = "g"
+
+[git_commit]
+disabled = false
+
+[git_state]
+disabled = false
+
+[git_status]
+disabled = false
+format = '([$all_status$ahead_behind]($style)):'
+
+[git_metrics]
+disabled = false
+format = '([+$added]($added_style))([-$deleted]($deleted_style))\]'
+
+[golang]
+disabled = false
+format = '\[[$symbol:$version](cyan)\]'
+symbol = "go"
+
+[rust]
+disabled = false
+format = '\[[$symbol:$version](208 bold)\]'
+symbol = "rs"
+# --- End Right ---
+
+[character]
+disabled = false
+success_symbol = '[\$](bold green)'
+error_symbol = '[\$](bold red)'
+
+# --- Disabled ---
+[aws]
+disabled = true
+[azure]
+disabled = true
+[battery]
+disabled = true
+[buf]
+disabled = true
+[bun]
+disabled = true
+[c]
+disabled = true
+[cmake]
+disabled = true
+[cobol]
+disabled = true
+[conda]
+disabled = true
+[container]
+disabled = true
+[crystal]
+disabled = true
+[daml]
+disabled = true
+[dart]
+disabled = true
+[deno]
+disabled = true
+[docker_context]
+disabled = true
+[dotnet]
+disabled = true
+[elixir]
+disabled = true
+[elm]
+disabled = true
+[env_var]
+disabled = true
+[erlang]
+disabled = true
+[gcloud]
+disabled = true
+[guix_shell]
+disabled = true
+[haskell]
+disabled = true
+[haxe]
+disabled = true
+[helm]
+disabled = true
+[java]
+disabled = true
+[julia]
+disabled = true
+[kotlin]
+disabled = true
+[localip]
+disabled = true
+[lua]
+disabled = true
+[memory_usage]
+disabled = true
+[meson]
+disabled = true
+[hg_branch]
+disabled = true
+[nim]
+disabled = true
+[nix_shell]
+disabled = true
+[nodejs]
+disabled = true
+[ocaml]
+disabled = true
+[opa]
+disabled = true
+[openstack]
+disabled = true
+[os]
+disabled = true
+[package]
+disabled = true
+[perl]
+disabled = true
+[php]
+disabled = true
+[purescript]
+disabled = true
+[python]
+disabled = true
+[rlang]
+disabled = true
+[raku]
+disabled = true
+[red]
+disabled = true
+[ruby]
+disabled = true
+[scala]
+disabled = true
+[shell]
+disabled = true
+[shlvl]
+disabled = true
+[singularity]
+disabled = true
+[spack]
+disabled = true
+[sudo]
+disabled = true
+[swift]
+disabled = true
+[terraform]
+disabled = true
+[vagrant]
+disabled = true
+[vlang]
+disabled = true
+[vcsh]
+disabled = true
+[zig]
+disabled = true
