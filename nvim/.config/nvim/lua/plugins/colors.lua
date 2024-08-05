@@ -1,14 +1,17 @@
 return {
     -- Colors for my eyes
     {
-        'EdenEast/nightfox.nvim',
-        opts = {
-            options = {
-                transparent = true,
-            },
-        },
-        init = function()
-            vim.cmd [[colorscheme carbonfox]]
+        'projekt0n/github-nvim-theme',
+        lazy = false,
+        priority = 1000,
+        config = function()
+            require('github-theme').setup {
+                options = {
+                    transparent = true,
+                },
+            }
+
+            vim.cmd 'colorscheme github_dark_default'
         end,
     },
 }
