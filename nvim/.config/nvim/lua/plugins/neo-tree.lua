@@ -44,6 +44,7 @@ return {
                     hide_dotfiles = false,
                     hide_gitignored = false,
                     hide_by_name = {
+                        '.DS_Store',
                         '.git',
                         '.idea',
                         'target',
@@ -55,6 +56,10 @@ return {
             },
             window = {
                 position = 'right',
+                mappings = {
+                    ['<bs>'] = 'none',
+                    ['<space>'] = 'none',
+                },
             },
         },
         init = function()

@@ -1,4 +1,52 @@
 return {
+    -- Copilot
+    {
+        'zbirenbaum/copilot.lua',
+        cmd = 'Copilot',
+        build = ':Copilot auh',
+        opts = {
+            suggestion = { enabled = false },
+            panel = { enabled = false },
+        },
+    },
+    -- Autocompletion
+    {
+        'hrsh7th/nvim-cmp',
+        event = 'InsertEnter',
+        dependencies = {
+            -- Adds other completion capabilities.
+            'hrsh7th/cmp-buffer',
+            'hrsh7th/cmp-emoji',
+            'hrsh7th/cmp-nvim-lsp',
+            'hrsh7th/cmp-nvim-lua',
+            'hrsh7th/cmp-path',
+            { 'zbirenbaum/copilot-cmp', dependencies = 'copilot.lua', opts = {} },
+        },
+        config = function()
+            local cmp = require 'cmp'
+            cmp.setup {
+                completion = { completeopt = 'menu,menuone,noinsert' },
+
+                mapping = cmp.mapping.preset.insert {
+                    ['<C-y>'] = cmp.mapping.confirm { select = true },
+                    ['<C-Space>'] = cmp.mapping.complete {},
+                    ['<C-n>'] = cmp.mapping.select_next_item(),
+                    ['<C-p>'] = cmp.mapping.select_prev_item(),
+                    ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+                    ['<C-f>'] = cmp.mapping.scroll_docs(4),
+                },
+                sources = {
+                    { name = 'buffer' },
+                    { name = 'nvim_lsp' },
+                    { name = 'copilot', group_index = 1, priority = 100 },
+                    { name = 'emoji' },
+                    { name = 'nvim_lua' },
+                    { name = 'lazydev', group_index = 0 },
+                    { name = 'path' },
+                },
+            }
+        end,
+    },
     -- LSP Configuration & Plugins
     {
         'neovim/nvim-lspconfig',
@@ -130,27 +178,22 @@ return {
             })
 
             -- Setup actual LSPs
-            local capabilities = vim.lsp.protocol.make_client_capabilities()
-            local servers = {
-                lua_ls = {},
-                rust_analyzer = {},
-            }
-            local ensured_installed = vim.tbl_keys(servers)
+            local cmp_lsp = require 'cmp_nvim_lsp'
+            local capabilities = vim.tbl_deep_extend(
+                'force',
+                {},
+                vim.lsp.protocol.make_client_capabilities(),
+                cmp_lsp.default_capabilities()
+            )
 
-            -- Ensure above servers are installed
             require('mason').setup()
             require('mason-lspconfig').setup {
-                ensured_installed = ensured_installed,
+                ensured_installed = { 'bashls', 'lua_ls', 'rust_analyzer' },
                 handlers = {
                     function(server_name)
-                        local server = servers[server_name] or {}
-                        server.capabilities = vim.tbl_deep_extend(
-                            'force',
-                            {},
-                            capabilities,
-                            server.capabilities or {}
-                        )
-                        require('lspconfig')[server_name].setup(server)
+                        require('lspconfig')[server_name].setup {
+                            capabilities = capabilities,
+                        }
                     end,
                 },
             }

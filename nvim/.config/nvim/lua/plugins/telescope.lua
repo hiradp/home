@@ -25,13 +25,13 @@ return {
             require('telescope').load_extension 'ui-select'
 
             local builtin = require 'telescope.builtin'
-            vim.keymap.set(
-                'n',
-                '<leader><leader>',
-                builtin.git_files,
-                { desc = '[ ] Search git files' }
-            )
-            vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
+            vim.keymap.set('n', '<leader><leader>', function()
+                local ok = pcall(builtin.git_files)
+                if not ok then
+                    builtin.find_files()
+                end
+            end, { desc = '[ ] Search files' })
+            vim.keymap.set('n', '<leader>sb', builtin.buffers, { desc = '[S]earch [B]uffers' })
             vim.keymap.set('n', '<leader>st', builtin.builtin, { desc = '[S]earch [T]elescope' })
         end,
     },
