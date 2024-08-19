@@ -188,7 +188,7 @@ return {
 
             require('mason').setup()
             require('mason-lspconfig').setup {
-                ensured_installed = { 'bashls', 'lua_ls', 'rust_analyzer' },
+                ensured_installed = { 'bashls', 'lua_ls', 'rust_analyzer', 'zls' },
                 handlers = {
                     function(server_name)
                         require('lspconfig')[server_name].setup {
