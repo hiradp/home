@@ -77,6 +77,10 @@ vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv")
 vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv")
 
+-- Closing buffers
+vim.keymap.set('n', 'bd', ':%bd|e#<CR>', { desc = 'Close all buffers except the current one' })
+vim.keymap.set('n', 'bD', ':%bd<CR>', { desc = 'Close all buffers' })
+
 -------------
 -- Autocmd --
 -------------
