@@ -35,6 +35,30 @@ format = '\[[$symbol:$context]($style)\]'
 style = 'cyan'
 symbol = 'k8s'
 
+[[kubernetes.contexts]]
+context_pattern = ".*cluster-dev-(?P<cluster>[\\w-]+)"
+context_alias = "dev-$cluster"
+
+[[kubernetes.contexts]]
+context_pattern = ".*cluster-ci-(?P<cluster>[\\w-]+)"
+context_alias = "ci-$cluster"
+style = 'yellow'
+
+[[kubernetes.contexts]]
+context_pattern = ".*cluster-stage-(?P<cluster>[\\w-]+)"
+context_alias = "stage-$cluster"
+style = 'yellow'
+
+[[kubernetes.contexts]]
+context_pattern = ".*cluster-preprod-(?P<cluster>[\\w-]+)"
+context_alias = "preprod-$cluster"
+style = 'red'
+
+[[kubernetes.contexts]]
+context_pattern = ".*cluster-prod-(?P<cluster>[\\w-]+)"
+context_alias = "prod-$cluster"
+style = 'bg:bright-red fg:black'
+
 [pulumi]
 disabled = false
 format = '\[[$symbol:$stack]($style)\]'
