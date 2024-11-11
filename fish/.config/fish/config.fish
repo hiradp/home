@@ -3,12 +3,12 @@
 # Disable greeting message
 set -U fish_greeting
 
-# Set local bin
-set -x PATH $PATH $HOME/.local/bin
-set -x PATH $PATH $HOME/.local/scripts
-
 # set project directory
 set -x HOME_DIR $HOME/Developer/Code/hiradp/home
+
+# Set local bin
+set -x PATH $PATH $HOME/.local/bin
+set -x PATH $PATH $HOME_DIR/scripts
 
 # Allow for subdirs in ./functions/
 set -x fish_function_path ~/.config/fish/functions/*/ $fish_function_path
