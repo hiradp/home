@@ -9,8 +9,8 @@ font-family = "Berkeley Mono"
 font-size = 11
 theme = Dark+
 window-decoration = true
-window-height = 120
-window-width = 370
+window-height = 50
+window-width = 150
 
 # colors
 background = #181818
