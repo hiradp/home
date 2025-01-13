@@ -33,3 +33,6 @@ palette = 12=#82B8C8
 palette = 13=#C28CB8
 palette = 14=#93D3C3
 palette = 15=#f8f8f8
+
+quick-terminal-position = "bottom"
+keybind = global:cmd+grave_accent=toggle_quick_terminal
