@@ -1,23 +1,15 @@
 return {
   {
-    "neovim/nvim-lspconfig",
+    "mrcjkb/rustaceanvim",
     opts = {
-      servers = {
-        rust_analyzer = {
-          settings = {
-            ["rust-analyzer"] = {
-              procMacro = {
-                enable = true,
-                ignored = {
-                  -- Add any macros you want to ignore here
-                  -- ["async_trait"] = { "async_trait" },
-                },
-              },
-              cargo = {
-                loadOutDirsFromCheck = true,
-                buildScripts = {
-                  enable = true,
-                },
+      server = {
+        default_settings = {
+          ["rust-analyzer"] = {
+            procMacro = {
+              ignored = {
+                ["async-trait"] = {},
+                ["napi-derive"] = { "napi" },
+                ["async-recursion"] = { "async_recursion" },
               },
             },
           },
@@ -25,4 +17,24 @@ return {
       },
     },
   },
+  -- {
+  --   "neovim/nvim-lspconfig",
+  --   opts = {
+  --     servers = {
+  --       rust_analyzer = {
+  --         settings = {
+  --           ["rust-analyzer"] = {
+  --             procMacro = {
+  --               enable = true,
+  --               ignored = {
+  --                 -- Add any macros you want to ignore here
+  --                 -- ["async_trait"] = { "async_trait" },
+  --               },
+  --             },
+  --           },
+  --         },
+  --       },
+  --     },
+  --   },
+  -- },
 }
