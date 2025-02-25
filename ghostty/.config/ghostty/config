@@ -12,9 +12,6 @@ window-decoration = true
 window-height = 125
 window-width = 400
 
-macos-icon = "retro"
-# macos-icon-frame = "chrome"
-
 # colors
 background = #181818
 foreground = #d8d8d8
