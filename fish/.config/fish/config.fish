@@ -4,7 +4,8 @@
 set -U fish_greeting
 
 # set project directory
-set -x HOME_DIR $HOME/Developer/Code/hiradp/home
+set -x HOME_DIR $HOME/Code/hiradp/home
+set -x WORK_DIR $HOME/Code/hiradp/work
 
 # Set local bin
 set -x PATH $PATH $HOME/.local/bin
@@ -31,8 +32,8 @@ if status is-interactive
     # Commands to run in interactive sessions can go here
 end
 
-if test -f ~/.config/fish/work/work.fish
-    source ~/.config/fish/work/work.fish
+if test -f $WORK_DIR/fish/work.fish
+    source $WORK_DIR/fish/work.fish
 end
 
 # --- starship.rs ---

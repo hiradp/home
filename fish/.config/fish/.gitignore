@@ -1,8 +1,3 @@
-# Configuration and functionaliy that helps with
-# day-to-day job. Probably contains sensitive information. 
-# If anything can be generalized, it'll live outside of this.
-work/
-
 # Other related fish things
 completions/
 conf.d/
