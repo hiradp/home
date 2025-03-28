@@ -13,26 +13,29 @@ window-height = 80
 window-width = 200
 
 # colors
-background = #181818
-foreground = #d8d8d8
-selection-invert-fg-bg = true
+# cyberdream theme for ghostty
+palette = 0=#16181a
+palette = 1=#ff6e5e
+palette = 2=#5eff6c
+palette = 3=#f1ff5e
+palette = 4=#5ea1ff
+palette = 5=#bd5eff
+palette = 6=#5ef1ff
+palette = 7=#ffffff
+palette = 8=#3c4048
+palette = 9=#ff6e5e
+palette = 10=#5eff6c
+palette = 11=#f1ff5e
+palette = 12=#5ea1ff
+palette = 13=#bd5eff
+palette = 14=#5ef1ff
+palette = 15=#ffffff
 
-palette = 0=#181818
-palette = 1=#AC4242
-palette = 2=#90A959
-palette = 3=#F4BF75
-palette = 4=#6A9FB5
-palette = 5=#AA759F
-palette = 6=#75B5AA
-palette = 7=#d8d8d8
-palette = 8=#6b6b6b
-palette = 9=#C55555
-palette = 10=#AAC474
-palette = 11=#FECA88
-palette = 12=#82B8C8
-palette = 13=#C28CB8
-palette = 14=#93D3C3
-palette = 15=#f8f8f8
+background = #16181a
+foreground = #ffffff
+cursor-color = #ffffff
+selection-background = #3c4048
+selection-foreground = #ffffff
 
 quick-terminal-position = "bottom"
 keybind = global:cmd+grave_accent=toggle_quick_terminal
