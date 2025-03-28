@@ -1,14 +1,8 @@
 return {
-
   {
-    "folke/tokyonight.nvim",
-    opts = {
-      transparent = true,
-      styles = {
-        sidebars = "transparent",
-        floats = "transparent",
-      },
-    },
+    "scottmckendry/cyberdream.nvim",
+    lazy = false,
+    priority = 1000,
   },
   {
     "nvim-neo-tree/neo-tree.nvim",
