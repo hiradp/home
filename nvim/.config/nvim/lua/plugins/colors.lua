@@ -1,17 +1,15 @@
 return {
     -- Colors for my eyes
     {
-        'projekt0n/github-nvim-theme',
+        'scottmckendry/cyberdream.nvim',
         lazy = false,
         priority = 1000,
         config = function()
-            require('github-theme').setup {
-                options = {
-                    transparent = true,
-                },
+            require('cyberdream').setup {
+                transparent = true,
             }
 
-            vim.cmd 'colorscheme github_dark_default'
+            vim.cmd 'colorscheme cyberdream'
         end,
     },
 }
