@@ -1,18 +1,31 @@
 # Hirad's Ghostty Configuration
-
 title = "👻"
-background-opacity = 0.95
-background-blur-radius = 20
 command = "/opt/homebrew/bin/fish -c 'tmux attach || tmux'"
 confirm-close-surface = false
+
+# Quick terminal Settings
+quick-terminal-position = "bottom"
+keybind = global:cmd+grave_accent=toggle_quick_terminal
+
+# Font settings
 font-family = "Berkeley Mono"
 font-size = 11
-theme = Dark+
+
+# Window Settings
 window-decoration = true
 window-height = 80
-window-width = 200
+window-width = 250
+window-padding-y = 5
+window-save-state = always
 
-# colors
+# MacOS specific settings
+macos-icon = blueprint
+macos-icon-frame= plastic
+
+# Colors for my eyes
+background-opacity = 0.95
+background-blur-radius = 20
+
 # cyberdream theme for ghostty
 palette = 0=#16181a
 palette = 1=#ff6e5e
@@ -37,5 +50,3 @@ cursor-color = #ffffff
 selection-background = #3c4048
 selection-foreground = #ffffff
 
-quick-terminal-position = "bottom"
-keybind = global:cmd+grave_accent=toggle_quick_terminal
