@@ -1,0 +1,17 @@
+bash
+bat
+btop
+eza
+fastfetch
+fd
+fish
+fzf
+gh
+jesseduffield/lazygit/lazygit
+jq
+neovim
+ripgrep
+starship
+stow
+tmux
+yq
