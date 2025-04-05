@@ -23,8 +23,8 @@ macos-icon = blueprint
 macos-icon-frame= plastic
 
 # Colors for my eyes
-background-opacity = 0.80
-background-blur-radius = 20
+background-opacity = 0.85
+background-blur-radius = 90
 
 # cyberdream theme for ghostty
 palette = 0=#16181a
