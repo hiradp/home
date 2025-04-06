@@ -20,7 +20,8 @@ window-save-state = always
 
 # MacOS specific settings
 macos-icon = blueprint
-macos-icon-frame= plastic
+macos-icon-frame = plastic
+macos-option-as-alt = left
 
 # Colors for my eyes
 background-opacity = 0.85
