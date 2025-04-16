@@ -13,8 +13,8 @@ font-size = 11
 
 # Window Settings
 window-decoration = true
-window-height = 80
-window-width = 250
+window-height = 100
+window-width = 300
 window-padding-y = 5
 window-save-state = always
 
