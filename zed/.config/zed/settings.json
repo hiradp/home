@@ -1,29 +1,26 @@
-// Zed settings
-//
-// For information on how to configure Zed, see the Zed
-// documentation: https://zed.dev/docs/configuring-zed
-//
-// To see all of Zed's default settings without changing your
-// custom settings, run `zed: open default settings` from the
-// command palette (cmd-shift-p / ctrl-shift-p)
+// Hirad's Zed settings
 {
+  // Vim related settings
   "vim_mode": true,
+  "relative_line_numbers": true,
+
+  // Zed related settings
   "features": {
     "edit_prediction_provider": "zed"
   },
 
-  // UI and Font
+  // UI
   "active_pane_modifiers": {
     "inactive_opacity": 0.65
   },
-  "agent_font_size": 10,
+  "agent_font_size": 12,
   "buffer_font_size": 10,
   "buffer_font_family": "Berkeley Mono",
   "show_whitespaces": "boundary",
   "theme": {
-    "mode": "dark",
-    "light": "Gruvbox Light Hard",
-    "dark": "Gruvbox Dark Hard"
+    "mode": "system",
+    "dark": "Gruvbox Dark Hard",
+    "light": "Gruvbox Light Soft"
   },
   "ui_font_size": 12,
 
@@ -31,17 +28,19 @@
   "agent": {
     "dock": "left"
   },
-  "chat_panel": {
-    "button": "never"
-  },
   "collaboration_panel": {
+    "button": false
+  },
+  "debugger": {
+    "button": false
+  },
+  "notification_panel": {
     "button": false
   },
   "project_panel": {
     "dock": "right"
   },
   "terminal": {
-    "dock": "left",
     "shell": {
       "with_arguments": {
         "program": "/opt/homebrew/bin/fish",
