@@ -19,8 +19,8 @@
   "show_whitespaces": "boundary",
   "theme": {
     "mode": "system",
-    "dark": "Gruvbox Dark Hard",
-    "light": "Gruvbox Light Soft"
+    "dark": "Ayu Dark",
+    "light": "One Light"
   },
   "ui_font_size": 12,
 
