@@ -24,7 +24,7 @@
 
   // UI
   "active_pane_modifiers": {
-    "inactive_opacity": 0.7
+    "inactive_opacity": 0.9
   },
   "agent_font_size": 12,
   "buffer_font_size": 10,
@@ -57,10 +57,7 @@
   },
   "toolbar": {
     "breadcrumbs": true,
-    "quick_actions": true,
-    "selections_menu": true,
-    "agent_review": true,
-    "code_actions": true
+    "quick_actions": false
   },
   "ui_font_size": 12,
   "unnecessary_code_fade": 0.5,
@@ -97,15 +94,6 @@
     "include_warnings": true,
     "inline": {
       "enabled": true
-    }
-  },
-  "lsp": {
-    "rust-analyzer": {
-      "initialization_options": {
-        "check": {
-          "command": "clippy"
-        }
-      }
     }
   }
 }
