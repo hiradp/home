@@ -31,7 +31,7 @@
   "buffer_font_family": "Berkeley Mono",
   "current_line_highlight": "gutter",
   "minimap": {
-    "show": "auto",
+    "show": "never",
     "thumb": "hover",
     "thumb_border": "full",
     "current_line_highlight": null
