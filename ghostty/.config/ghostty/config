@@ -24,3 +24,4 @@ macos-option-as-alt = left
 # Colors for my eyes
 background-opacity = 0.85
 background-blur-radius = 90
+theme = ayu
