@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [[ -z $STOW_FOLDERS ]]; then
-  STOW_FOLDERS="fish ghostty git nvim starship tmux zed"
+  STOW_FOLDERS="fish ghostty git nvim starship tmux"
 fi
 
 if [[ -z $DOTFILES ]]; then
