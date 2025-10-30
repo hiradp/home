@@ -59,6 +59,11 @@ context_pattern = ".*cluster-prod-(?P<cluster>[\\w-]+)"
 context_alias = "prod-$cluster"
 style = 'bg:bright-red fg:black'
 
+[[kubernetes.contexts]]
+context_pattern = ".*pc-prod-(?P<cluster>[\\w-]+)"
+context_alias = "prod-$cluster"
+style = 'bg:bright-red fg:black'
+
 [pulumi]
 disabled = false
 format = '\[[$symbol:$stack]($style)\]'
