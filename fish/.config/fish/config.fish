@@ -39,6 +39,9 @@ end
 # --- starship.rs ---
 starship init fish | source
 
+# --- languages ---
+set -gx PATH /opt/homebrew/opt/node@22/bin $PATH
+
 # --- Tools ---
 fzf --fish | source
 
