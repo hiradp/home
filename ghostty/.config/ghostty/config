@@ -25,3 +25,6 @@ macos-option-as-alt = left
 background-opacity = 0.85
 background-blur-radius = 90
 theme = ayu
+
+# Claude
+keybind = shift+enter=text:\x1b\r
