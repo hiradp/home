@@ -9,7 +9,7 @@
   "copilot.lua": { "branch": "master", "commit": "e78d1ffebdf6ccb6fd8be4e6898030c1cf5f9b64" },
   "cyberdream.nvim": { "branch": "main", "commit": "a956559cda735fbc9f0b39541529386322afaedd" },
   "fidget.nvim": { "branch": "main", "commit": "64463022a1f2ff1318ab22a2ea4125ed9313a483" },
-  "gitsigns.nvim": { "branch": "main", "commit": "6bd29494e3f79ff08be1d35bc1926ed23c22ed9a" },
+  "gitsigns.nvim": { "branch": "main", "commit": "dfac404ac94b0eb1461bd7da32279e16950dfd67" },
   "harpoon": { "branch": "harpoon2", "commit": "87b1a3506211538f460786c23f98ec63ad9af4e5" },
   "lazy.nvim": { "branch": "main", "commit": "306a05526ada86a7b30af95c5cc81ffba93fef97" },
   "lazydev.nvim": { "branch": "main", "commit": "5231c62aa83c2f8dc8e7ba957aa77098cda1257d" },
