@@ -3,7 +3,7 @@
 set -euo pipefail
 
 DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
-DEFAULT_FOLDERS="aerospace fish ghostty git nvim starship tmux"
+DEFAULT_FOLDERS="fish ghostty git nvim starship tmux"
 
 # ------------------------------------------------------------------------------
 # Commands
@@ -12,13 +12,11 @@ DEFAULT_FOLDERS="aerospace fish ghostty git nvim starship tmux"
 cmd_link() {
   local folders="${*:-$DEFAULT_FOLDERS}"
 
-  pushd "$DOTFILES" >/dev/null
   for folder in $folders; do
     echo "Linking $folder..."
-    stow -D "$folder" 2>/dev/null || true
-    stow "$folder" -t "$HOME"
+    stow -d "$DOTFILES/config" -D "$folder" 2>/dev/null || true
+    stow -d "$DOTFILES/config" "$folder" -t "$HOME"
   done
-  popd >/dev/null
 
   echo "Done!"
 }
