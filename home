@@ -12,13 +12,13 @@ DEFAULT_FOLDERS="aerospace fish ghostty git nvim starship tmux"
 cmd_link() {
   local folders="${*:-$DEFAULT_FOLDERS}"
 
-  pushd "$DOTFILES" > /dev/null
+  pushd "$DOTFILES" >/dev/null
   for folder in $folders; do
     echo "Linking $folder..."
     stow -D "$folder" 2>/dev/null || true
     stow "$folder" -t "$HOME"
   done
-  popd > /dev/null
+  popd >/dev/null
 
   echo "Done!"
 }
@@ -27,21 +27,21 @@ cmd_install() {
   local type="${1:-all}"
 
   case "$type" in
-    essentials)
-      _install_from_file "$DOTFILES/brew/essentials"
-      ;;
-    casks)
-      _install_from_file "$DOTFILES/brew/cask" --cask
-      ;;
-    all)
-      _install_from_file "$DOTFILES/brew/essentials"
-      _install_from_file "$DOTFILES/brew/cask" --cask
-      ;;
-    *)
-      echo "Unknown install type: $type" >&2
-      echo "Valid types: essentials, casks, all" >&2
-      exit 1
-      ;;
+  essentials)
+    _install_from_file "$DOTFILES/pkg/brew/essentials"
+    ;;
+  casks)
+    _install_from_file "$DOTFILES/pkg/brew/cask" --cask
+    ;;
+  all)
+    _install_from_file "$DOTFILES/pkg/brew/essentials"
+    _install_from_file "$DOTFILES/pkg/brew/cask" --cask
+    ;;
+  *)
+    echo "Unknown install type: $type" >&2
+    echo "Valid types: essentials, casks, all" >&2
+    exit 1
+    ;;
   esac
 
   echo "Done!"
@@ -103,7 +103,7 @@ _install_from_file() {
     [[ -z "$package" || "$package" =~ ^# ]] && continue
     echo "Installing $package..."
     brew install $flag "$package"
-  done < "$file"
+  done <"$file"
 }
 
 # ------------------------------------------------------------------------------
@@ -115,11 +115,15 @@ main() {
   shift || true
 
   case "$cmd" in
-    setup) cmd_setup ;;
-    install) cmd_install "$@" ;;
-    link) cmd_link "$@" ;;
-    help|--help|-h) cmd_help ;;
-    *) echo "Unknown command: $cmd" >&2; cmd_help; exit 1 ;;
+  setup) cmd_setup ;;
+  install) cmd_install "$@" ;;
+  link) cmd_link "$@" ;;
+  help | --help | -h) cmd_help ;;
+  *)
+    echo "Unknown command: $cmd" >&2
+    cmd_help
+    exit 1
+    ;;
   esac
 }
 
