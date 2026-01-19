@@ -9,17 +9,23 @@ This is a personal dotfiles repository managed with GNU Stow. It contains config
 ## Installation
 
 ```bash
-# Install all default configs (aerospace, fish, ghostty, git, nvim, starship, tmux)
-./install.sh
+# First-time machine setup (installs brew packages, then links configs)
+./home setup
 
-# Install specific folders only
-STOW_FOLDERS="nvim fish" ./install.sh
+# Install brew packages only
+./home install              # Install all (essentials + casks)
+./home install essentials   # Install CLI tools only
+./home install casks        # Install GUI apps only
 
-# Use a different dotfiles location
-DOTFILES=/path/to/dotfiles ./install.sh
+# Link config folders only
+./home link                 # Link all default configs
+./home link nvim fish       # Link specific folders
+
+# Show help
+./home help
 ```
 
-The install script uses `stow` to symlink each folder's contents to `$HOME`. Each top-level directory follows the stow convention where files are placed relative to where they'll be symlinked (e.g., `nvim/.config/nvim/` → `~/.config/nvim/`).
+The `home` CLI uses `stow` to symlink each folder's contents to `$HOME`. Each top-level directory follows the stow convention where files are placed relative to where they'll be symlinked (e.g., `nvim/.config/nvim/` → `~/.config/nvim/`).
 
 ## Repository Structure
 

@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
+DEFAULT_FOLDERS="aerospace fish ghostty git nvim starship tmux"
+
+# ------------------------------------------------------------------------------
+# Commands
+# ------------------------------------------------------------------------------
+
+cmd_link() {
+  local folders="${*:-$DEFAULT_FOLDERS}"
+
+  pushd "$DOTFILES" > /dev/null
+  for folder in $folders; do
+    echo "Linking $folder..."
+    stow -D "$folder" 2>/dev/null || true
+    stow "$folder" -t "$HOME"
+  done
+  popd > /dev/null
+
+  echo "Done!"
+}
+
+cmd_install() {
+  local type="${1:-all}"
+
+  case "$type" in
+    essentials)
+      _install_from_file "$DOTFILES/brew/essentials"
+      ;;
+    casks)
+      _install_from_file "$DOTFILES/brew/cask" --cask
+      ;;
+    all)
+      _install_from_file "$DOTFILES/brew/essentials"
+      _install_from_file "$DOTFILES/brew/cask" --cask
+      ;;
+    *)
+      echo "Unknown install type: $type" >&2
+      echo "Valid types: essentials, casks, all" >&2
+      exit 1
+      ;;
+  esac
+
+  echo "Done!"
+}
+
+cmd_setup() {
+  echo "==> Running first-time setup..."
+  echo ""
+  echo "==> Installing brew packages..."
+  cmd_install
+
+  echo ""
+  echo "==> Linking dotfiles..."
+  cmd_link
+
+  echo ""
+  echo "==> Setup complete!"
+}
+
+cmd_help() {
+  cat <<EOF
+home - dotfiles manager
+
+Usage: home <command> [args]
+
+Commands:
+  setup                 First-time setup (install + link)
+  install [type]        Install brew packages (essentials, casks, all)
+  link [folders...]     Link configs to ~ using stow (default: all)
+  help                  Show this help message
+
+Environment:
+  DOTFILES              Path to dotfiles repo (default: ~/Code/hiradp/home)
+
+Examples:
+  home setup                First-time machine setup
+  home install              Install all brew packages
+  home install essentials   Install only CLI tools
+  home install casks        Install only GUI apps
+  home link                 Link all config folders
+  home link nvim fish       Link only nvim and fish configs
+EOF
+}
+
+# ------------------------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------------------------
+
+_install_from_file() {
+  local file="$1"
+  local flag="${2:-}"
+
+  if [[ ! -f "$file" ]]; then
+    echo "File not found: $file" >&2
+    exit 1
+  fi
+
+  while IFS= read -r package || [[ -n "$package" ]]; do
+    [[ -z "$package" || "$package" =~ ^# ]] && continue
+    echo "Installing $package..."
+    brew install $flag "$package"
+  done < "$file"
+}
+
+# ------------------------------------------------------------------------------
+# Main
+# ------------------------------------------------------------------------------
+
+main() {
+  local cmd="${1:-help}"
+  shift || true
+
+  case "$cmd" in
+    setup) cmd_setup ;;
+    install) cmd_install "$@" ;;
+    link) cmd_link "$@" ;;
+    help|--help|-h) cmd_help ;;
+    *) echo "Unknown command: $cmd" >&2; cmd_help; exit 1 ;;
+  esac
+}
+
+main "$@"
