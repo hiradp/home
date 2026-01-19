@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+#
+# Bootstrap script for setting up a fresh Mac
+# Usage: curl -fsSL https://raw.githubusercontent.com/hiradp/home/main/bin/bootstrap | bash
+#
+set -euo pipefail
+
+REPO_URL="https://github.com/hiradp/home.git"
+SSH_URL="git@github.com:hiradp/home.git"
+DOTFILES="$HOME/Code/hiradp/home"
+
+# ------------------------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------------------------
+
+_install_xcode_cli() {
+  if xcode-select -p &>/dev/null; then
+    echo "Xcode CLI tools already installed"
+  else
+    echo "Installing Xcode CLI tools..."
+    xcode-select --install
+    echo "Waiting for Xcode CLI tools installation to complete..."
+    echo "(A dialog should appear - click 'Install' to proceed)"
+    until xcode-select -p &>/dev/null; do
+      sleep 5
+    done
+    echo "Xcode CLI tools installed"
+  fi
+}
+
+# ------------------------------------------------------------------------------
+# Main
+# ------------------------------------------------------------------------------
+
+echo ""
+echo "=================================="
+echo "  Home Bootstrap"
+echo "=================================="
+echo ""
+
+# Step 1: Xcode CLI tools (required for git)
+echo "==> Installing Xcode CLI tools..."
+_install_xcode_cli
+
+# Step 2: Clone the repo
+echo ""
+echo "==> Cloning dotfiles repo..."
+mkdir -p "$(dirname "$DOTFILES")"
+if [[ -d "$DOTFILES" ]]; then
+  echo "Repo already exists at $DOTFILES"
+  echo "Pulling latest changes..."
+  git -C "$DOTFILES" pull --ff-only || true
+else
+  git clone "$REPO_URL" "$DOTFILES"
+  echo "Cloned to $DOTFILES"
+fi
+
+# Step 3: Run setup
+echo ""
+echo "==> Running setup..."
+"$DOTFILES/bin/home" setup
+
+# Step 4: Switch to SSH remote (now that SSH keys are set up)
+echo ""
+echo "==> Switching to SSH remote..."
+git -C "$DOTFILES" remote set-url origin "$SSH_URL"
+echo "Remote updated to $SSH_URL"
+
+echo ""
+echo "=================================="
+echo "  Bootstrap complete!"
+echo "=================================="
+echo ""
+echo "Your dotfiles are at: $DOTFILES"
+echo "Run 'home help' for available commands"
+echo ""

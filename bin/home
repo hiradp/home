@@ -47,6 +47,15 @@ cmd_install() {
 
 cmd_setup() {
   echo "==> Running first-time setup..."
+
+  echo ""
+  echo "==> Installing Homebrew..."
+  _install_homebrew
+
+  echo ""
+  echo "==> Setting up SSH keys..."
+  _setup_ssh
+
   echo ""
   echo "==> Installing brew packages..."
   cmd_install
@@ -87,6 +96,40 @@ EOF
 # ------------------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------------------
+
+_install_homebrew() {
+  if command -v brew &>/dev/null; then
+    echo "Homebrew already installed"
+  else
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    echo "Homebrew installed"
+  fi
+}
+
+_setup_ssh() {
+  local ssh_dir="$HOME/.ssh"
+  local vault_dir="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents/Vault"
+
+  mkdir -p "$ssh_dir"
+
+  if [[ -f "$ssh_dir/id_ed25519" ]]; then
+    echo "SSH keys already exist"
+  else
+    if [[ -f "$vault_dir/id_ed25519" ]]; then
+      cp "$vault_dir/id_ed25519" "$ssh_dir/id_ed25519"
+      cp "$vault_dir/id_ed25519.pub" "$ssh_dir/id_ed25519.pub"
+      chmod 600 "$ssh_dir/id_ed25519"
+      chmod 644 "$ssh_dir/id_ed25519.pub"
+      echo "SSH keys copied and permissions set"
+    else
+      echo "Warning: SSH keys not found in iCloud vault" >&2
+      echo "Expected location: $vault_dir" >&2
+      return 0
+    fi
+  fi
+
+  ssh-add "$ssh_dir/id_ed25519" 2>/dev/null || true
+}
 
 _install_from_file() {
   local file="$1"
