@@ -109,6 +109,7 @@ _install_homebrew() {
 _setup_ssh() {
   local ssh_dir="$HOME/.ssh"
   local vault_dir="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents/Vault"
+  local config_file="$ssh_dir/config"
 
   mkdir -p "$ssh_dir"
 
@@ -128,7 +129,21 @@ _setup_ssh() {
     fi
   fi
 
-  ssh-add "$ssh_dir/id_ed25519" 2>/dev/null || true
+  # Configure SSH to use Apple Keychain
+  if ! grep -q "UseKeychain yes" "$config_file" 2>/dev/null; then
+    cat >>"$config_file" <<EOF
+
+Host *
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_ed25519
+EOF
+    chmod 600 "$config_file"
+    echo "SSH config updated to use Apple Keychain"
+  fi
+
+  # Add key to agent with keychain storage
+  ssh-add --apple-use-keychain "$ssh_dir/id_ed25519" 2>/dev/null || true
 }
 
 _install_from_file() {
