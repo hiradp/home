@@ -9,7 +9,7 @@ set -x WORK_DIR $HOME/Code/hiradp/work
 
 # Set local bin
 set -x PATH $PATH $HOME/.local/bin
-set -x PATH $PATH $HOME_DIR/scripts
+set -x PATH $PATH $HOME_DIR/bin
 
 # Allow for subdirs in ./functions/
 set -x fish_function_path ~/.config/fish/functions/*/ $fish_function_path
