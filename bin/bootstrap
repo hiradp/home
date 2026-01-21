@@ -58,7 +58,7 @@ fi
 # Step 3: Run setup
 echo ""
 echo "==> Running setup..."
-"$DOTFILES/bin/home" setup
+"$DOTFILES/bin/home" setup </dev/tty
 
 # Step 4: Switch to SSH remote (now that SSH keys are set up)
 echo ""
