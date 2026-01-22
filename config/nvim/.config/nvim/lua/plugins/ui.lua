@@ -1,16 +1,23 @@
 return {
+  -- automatic dark mode
   {
-    "scottmckendry/cyberdream.nvim",
-    lazy = false,
-    priority = 1000,
+    "cormacrelf/dark-notify",
     config = function()
-      require("cyberdream").setup({
-        transparent = true,
-      })
-
-      vim.cmd("colorscheme cyberdream")
+      require("dark_notify").run()
     end,
   },
+  -- colorscheme
+  {
+    "ellisonleao/gruvbox.nvim",
+    priority = 1000, -- make sure to load this before all the other start plugins
+    config = function()
+      require("gruvbox").setup({
+        contrast = "hard",
+      })
+      vim.cmd([[colorscheme gruvbox]])
+    end,
+  },
+
   {
     "nvim-neo-tree/neo-tree.nvim",
     opts = {

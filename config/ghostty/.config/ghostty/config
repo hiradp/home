@@ -22,9 +22,7 @@ window-save-state = always
 macos-option-as-alt = left
 
 # Colors for my eyes
-background-opacity = 0.85
-background-blur-radius = 90
-theme = ayu
+theme = light:Gruvbox Light Hard,dark:Gruvbox Dark Hard
 
 # Claude
 keybind = shift+enter=text:\x1b\r
