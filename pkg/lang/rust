@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v rustup &>/dev/null; then
+  echo "rustup already installed"
+  rustup update
+else
+  echo "Installing rustup..."
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+fi
+
+# Source cargo env for current shell
+. "$HOME/.cargo/env"
+
+echo "Rust $(rustc --version) installed"
+echo "Cargo $(cargo --version)"

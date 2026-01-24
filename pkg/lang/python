@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v uv &>/dev/null; then
+  echo "uv already installed"
+else
+  echo "Installing uv..."
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+fi
+
+# Source uv for current shell
+export PATH="$HOME/.local/bin:$PATH"
+
+# Install latest Python
+echo "Installing Python 3.13..."
+uv python install 3.13
+
+echo "uv $(uv --version) installed"
+echo "Python $(uv python find 3.13) installed"

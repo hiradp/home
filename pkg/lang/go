@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v go &>/dev/null; then
+  echo "Go already installed: $(go version)"
+else
+  echo "Installing Go via Homebrew..."
+  brew install go
+  echo "Go $(go version) installed"
+fi

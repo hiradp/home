@@ -21,13 +21,6 @@ switch (uname)
         eval (/opt/homebrew/bin/brew shellenv)
 end
 
-# Go Lang
-set -x GOPATH $HOME/.local/go
-set -U fish_user_paths $GOPATH/bin $fish_user_paths
-
-# Rust
-set -U fish_user_paths $HOME/.cargo/bin $fish_user_paths
-
 if status is-interactive
     # Commands to run in interactive sessions can go here
 end
@@ -40,7 +33,13 @@ end
 starship init fish | source
 
 # --- languages ---
-set -gx PATH /opt/homebrew/opt/node@22/bin $PATH
+# Go Lang
+set -x GOPATH $HOME/.local/go
+set -U fish_user_paths $GOPATH/bin $fish_user_paths--
+# Node (fnm)
+fnm env | source
+# Rust
+set -U fish_user_paths $HOME/.cargo/bin $fish_user_paths
 
 # --- Tools ---
 fzf --fish | source
