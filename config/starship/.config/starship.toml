@@ -19,7 +19,6 @@ ssh_only = true
 [time]
 disabled = false
 format = '\[[$time]($style)\]'
-style = "white"
 
 [directory]
 disabled = false
@@ -27,7 +26,6 @@ format = '\[[$path]($style)[$read_only]($read_only_style)\]'
 truncation_length = 4
 truncation_symbol = "../"
 truncate_to_repo = false
-style = "white"
 
 [kubernetes]
 disabled = false

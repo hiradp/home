@@ -2,6 +2,7 @@
 title = "👻"
 command = "/opt/homebrew/bin/fish -c 'tmux attach || tmux'"
 confirm-close-surface = false
+shell-integration = fish
 
 # Quick terminal Settings
 quick-terminal-position = "bottom"
@@ -12,7 +13,6 @@ font-family = "Berkeley Mono"
 font-size = 11
 
 # Window Settings
-window-decoration = true
 window-height = 100
 window-width = 300
 window-padding-y = 5
@@ -22,7 +22,9 @@ window-save-state = always
 macos-option-as-alt = left
 
 # Colors for my eyes
-theme = light:Gruvbox Light Hard,dark:Gruvbox Dark Hard
+background-blur = true
+background-opacity = 0.95
+theme = light:Builtin Solarized Light,dark:Builtin Pastel Dark
 
 # Claude
 keybind = shift+enter=text:\x1b\r
