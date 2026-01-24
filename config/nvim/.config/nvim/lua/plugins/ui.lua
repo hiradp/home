@@ -3,21 +3,35 @@ return {
   {
     "cormacrelf/dark-notify",
     config = function()
-      require("dark_notify").run()
+      require("dark_notify").run({
+        schemes = {
+          dark = "tokyonight",
+          light = "gruvbox",
+        },
+      })
     end,
   },
   -- colorscheme
   {
     "ellisonleao/gruvbox.nvim",
     priority = 1000, -- make sure to load this before all the other start plugins
-    config = function()
-      require("gruvbox").setup({
-        contrast = "hard",
-        transparent_mode = true,
-      })
-
-      vim.cmd("colorscheme gruvbox")
-    end,
+    opts = {
+      contrast = "hard",
+      transparent_mode = true,
+    },
+  },
+  {
+    "folke/tokyonight.nvim",
+    lazy = false,
+    priority = 1000,
+    opts = {
+      style = "night",
+      transparent = true,
+      styles = {
+        floats = "transparent",
+        sidebars = "transparent",
+      },
+    },
   },
 
   {
