@@ -3,15 +3,14 @@
 set -euo pipefail
 
 if command -v rustup &>/dev/null; then
-  echo "rustup already installed"
+  log_info "rustup already installed, updating..."
   rustup update
 else
-  echo "Installing rustup..."
+  log_info "Installing rustup..."
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 fi
 
-# Source cargo env for current shell
 . "$HOME/.cargo/env"
 
-echo "Rust $(rustc --version) installed"
-echo "Cargo $(cargo --version)"
+log_ok "Rust $(rustc --version | cut -d' ' -f2)"
+log_dim "Cargo $(cargo --version | cut -d' ' -f2)"

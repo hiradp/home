@@ -3,20 +3,18 @@
 set -euo pipefail
 
 if command -v fnm &>/dev/null; then
-  echo "fnm already installed"
+  log_info "fnm already installed"
 else
-  echo "Installing fnm..."
+  log_info "Installing fnm..."
   curl -fsSL https://fnm.vercel.app/install | bash
 fi
 
-# Source fnm for current shell
 export PATH="$HOME/.local/share/fnm:$PATH"
 eval "$(fnm env)"
 
-# Install Node.js 24
-echo "Installing Node.js 24..."
+log_info "Installing Node.js 24..."
 fnm install 24
 fnm default 24
 
-echo "Node.js $(node -v) installed"
-echo "npm $(npm -v)"
+log_ok "Node.js $(node -v)"
+log_dim "npm $(npm -v)"

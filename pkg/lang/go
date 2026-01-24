@@ -3,9 +3,9 @@
 set -euo pipefail
 
 if command -v go &>/dev/null; then
-  echo "Go already installed: $(go version)"
+  log_info "Go already installed: $(go version | cut -d' ' -f3)"
 else
-  echo "Installing Go via Homebrew..."
+  log_info "Installing Go via Homebrew..."
   brew install go
-  echo "Go $(go version) installed"
+  log_ok "Go $(go version | cut -d' ' -f3)"
 fi

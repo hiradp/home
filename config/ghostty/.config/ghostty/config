@@ -24,7 +24,7 @@ macos-option-as-alt = left
 # Colors for my eyes
 background-blur = true
 background-opacity = 0.95
-theme = light:Builtin Solarized Light,dark:Builtin Pastel Dark
+theme = light:Gruvbox Light Hard,dark:Builtin Pastel Dark
 
 # Claude
 keybind = shift+enter=text:\x1b\r

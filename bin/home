@@ -5,6 +5,9 @@ set -euo pipefail
 DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
 DEFAULT_FOLDERS="fish ghostty git nvim starship tmux"
 
+# Source logging library
+source "$DOTFILES/lib/log.sh"
+
 # ------------------------------------------------------------------------------
 # Commands
 # ------------------------------------------------------------------------------
@@ -14,12 +17,12 @@ cmd_link() {
   local stow="/opt/homebrew/bin/stow"
 
   for folder in $folders; do
-    echo "Linking $folder..."
+    log_info "Linking $folder..."
     $stow -d "$DOTFILES/config" -D "$folder" 2>/dev/null || true
     $stow -d "$DOTFILES/config" "$folder" -t "$HOME"
   done
 
-  echo "Done!"
+  log_ok "Linked"
 }
 
 cmd_install() {
@@ -41,36 +44,31 @@ cmd_install() {
     _install_langs
     ;;
   *)
-    echo "Unknown install type: $type" >&2
-    echo "Valid types: essentials, casks, langs, all" >&2
+    log_error "Unknown install type: $type"
+    log_info "Valid types: essentials, casks, langs, all"
     exit 1
     ;;
   esac
 
-  echo "Done!"
+  log_ok "Installed"
 }
 
 cmd_setup() {
-  echo "==> Running first-time setup..."
+  log_banner "Home Setup"
 
-  echo ""
-  echo "==> Installing Homebrew..."
+  log_section "Installing Homebrew"
   _install_homebrew
 
-  echo ""
-  echo "==> Setting up SSH keys..."
+  log_section "Setting up SSH keys"
   _setup_ssh
 
-  echo ""
-  echo "==> Installing brew packages..."
+  log_section "Installing brew packages"
   cmd_install
 
-  echo ""
-  echo "==> Linking dotfiles..."
+  log_section "Linking dotfiles"
   cmd_link
 
-  echo ""
-  echo "==> Setup complete!"
+  log_banner "Setup complete"
 }
 
 cmd_help() {
@@ -105,10 +103,11 @@ EOF
 
 _install_homebrew() {
   if command -v brew &>/dev/null; then
-    echo "Homebrew already installed"
+    log_info "Already installed"
   else
+    log_info "Installing..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    echo "Homebrew installed"
+    log_ok "Installed"
   fi
   eval "$(/opt/homebrew/bin/brew shellenv)"
 }
@@ -121,22 +120,21 @@ _setup_ssh() {
   mkdir -p "$ssh_dir"
 
   if [[ -f "$ssh_dir/id_ed25519" ]]; then
-    echo "SSH keys already exist"
+    log_info "SSH keys already exist"
   else
     if [[ -f "$vault_dir/id_ed25519" ]]; then
       cp "$vault_dir/id_ed25519" "$ssh_dir/id_ed25519"
       cp "$vault_dir/id_ed25519.pub" "$ssh_dir/id_ed25519.pub"
       chmod 600 "$ssh_dir/id_ed25519"
       chmod 644 "$ssh_dir/id_ed25519.pub"
-      echo "SSH keys copied and permissions set"
+      log_ok "SSH keys copied from iCloud"
     else
-      echo "Warning: SSH keys not found in iCloud vault" >&2
-      echo "Expected location: $vault_dir" >&2
+      log_warn "SSH keys not found in iCloud vault"
+      log_dim "Expected: $vault_dir"
       return 0
     fi
   fi
 
-  # Configure SSH to use Apple Keychain
   if ! grep -q "UseKeychain yes" "$config_file" 2>/dev/null; then
     cat >>"$config_file" <<EOF
 
@@ -146,10 +144,9 @@ Host *
   IdentityFile ~/.ssh/id_ed25519
 EOF
     chmod 600 "$config_file"
-    echo "SSH config updated to use Apple Keychain"
+    log_info "SSH config updated for Apple Keychain"
   fi
 
-  # Add key to agent with keychain storage
   ssh-add --apple-use-keychain "$ssh_dir/id_ed25519" 2>/dev/null || true
 }
 
@@ -158,22 +155,22 @@ _install_from_file() {
   local flag="${2:-}"
 
   if [[ ! -f "$file" ]]; then
-    echo "File not found: $file" >&2
+    log_error "File not found: $file"
     exit 1
   fi
 
   while IFS= read -r package || [[ -n "$package" ]]; do
     [[ -z "$package" || "$package" =~ ^# ]] && continue
-    echo "Installing $package..."
+    log_dim "Installing $package..."
     brew install $flag "$package" </dev/null
   done <"$file"
 }
 
 _install_langs() {
-  echo "Installing language runtimes..."
+  log_info "Installing language runtimes..."
   for script in "$DOTFILES/pkg/lang"/*; do
     [[ -f "$script" ]] || continue
-    echo "Installing $(basename "$script")..."
+    log_dim "$(basename "$script")"
     source "$script"
   done
 }
@@ -192,7 +189,7 @@ main() {
   link) cmd_link "$@" ;;
   help | --help | -h) cmd_help ;;
   *)
-    echo "Unknown command: $cmd" >&2
+    log_error "Unknown command: $cmd"
     cmd_help
     exit 1
     ;;

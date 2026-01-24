@@ -10,21 +10,42 @@ SSH_URL="git@github.com:hiradp/home.git"
 DOTFILES="$HOME/Code/hiradp/home"
 
 # ------------------------------------------------------------------------------
+# Logging (inline for bootstrap - runs before repo is cloned)
+# ------------------------------------------------------------------------------
+
+if [[ -t 1 ]]; then
+  _LOG_GREEN='\033[32m'
+  _LOG_RED='\033[31m'
+  _LOG_DIM='\033[2m'
+  _LOG_RESET='\033[0m'
+else
+  _LOG_GREEN=''
+  _LOG_RED=''
+  _LOG_DIM=''
+  _LOG_RESET=''
+fi
+
+log_banner() { echo ""; echo "─── $1 ───"; echo ""; }
+log_section() { echo ""; echo "▸ $1"; }
+log_info() { echo "  $1"; }
+log_ok() { echo -e "  ${_LOG_GREEN}✓${_LOG_RESET} $1"; }
+log_dim() { echo -e "  ${_LOG_DIM}$1${_LOG_RESET}"; }
+
+# ------------------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------------------
 
 _install_xcode_cli() {
   if xcode-select -p &>/dev/null; then
-    echo "Xcode CLI tools already installed"
+    log_info "Already installed"
   else
-    echo "Installing Xcode CLI tools..."
+    log_info "Installing..."
     xcode-select --install
-    echo "Waiting for Xcode CLI tools installation to complete..."
-    echo "(A dialog should appear - click 'Install' to proceed)"
+    log_dim "A dialog should appear - click 'Install' to proceed"
     until xcode-select -p &>/dev/null; do
       sleep 5
     done
-    echo "Xcode CLI tools installed"
+    log_ok "Installed"
   fi
 }
 
@@ -32,45 +53,35 @@ _install_xcode_cli() {
 # Main
 # ------------------------------------------------------------------------------
 
-echo ""
-echo "=================================="
-echo "  Home Bootstrap"
-echo "=================================="
-echo ""
+log_banner "Home Bootstrap"
 
-# Step 1: Xcode CLI tools (required for git)
-echo "==> Installing Xcode CLI tools..."
+log_section "Installing Xcode CLI tools"
 _install_xcode_cli
 
-# Step 2: Clone the repo
-echo ""
-echo "==> Cloning dotfiles repo..."
+log_section "Cloning dotfiles"
 mkdir -p "$(dirname "$DOTFILES")"
 if [[ -d "$DOTFILES" ]]; then
-  echo "Repo already exists at $DOTFILES"
-  echo "Pulling latest changes..."
-  git -C "$DOTFILES" pull --ff-only || true
+  log_info "Repo exists at $DOTFILES"
+  log_info "Pulling latest..."
+  if git -C "$DOTFILES" pull --ff-only 2>/dev/null; then
+    log_ok "Up to date"
+  else
+    log_dim "Already up to date"
+  fi
 else
   git clone "$REPO_URL" "$DOTFILES"
-  echo "Cloned to $DOTFILES"
+  log_ok "Cloned to $DOTFILES"
 fi
 
-# Step 3: Run setup
-echo ""
-echo "==> Running setup..."
+log_section "Running setup"
 "$DOTFILES/bin/home" setup </dev/tty
 
-# Step 4: Switch to SSH remote (now that SSH keys are set up)
-echo ""
-echo "==> Switching to SSH remote..."
+log_section "Switching to SSH remote"
 git -C "$DOTFILES" remote set-url origin "$SSH_URL"
-echo "Remote updated to $SSH_URL"
+log_ok "Remote updated"
 
-echo ""
-echo "=================================="
-echo "  Bootstrap complete!"
-echo "=================================="
-echo ""
-echo "Your dotfiles are at: $DOTFILES"
-echo "Run 'home help' for available commands"
+log_banner "Bootstrap complete"
+
+echo "  Dotfiles: $DOTFILES"
+echo "  Run 'home help' for commands"
 echo ""
