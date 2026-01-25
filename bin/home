@@ -162,7 +162,9 @@ _install_from_file() {
   while IFS= read -r package || [[ -n "$package" ]]; do
     [[ -z "$package" || "$package" =~ ^# ]] && continue
     log_dim "Installing $package..."
-    brew install $flag "$package" </dev/null
+    if ! brew install $flag "$package" </dev/null; then
+      log_warn "Failed to install $package (may already exist outside Homebrew)"
+    fi
   done <"$file"
 }
 
