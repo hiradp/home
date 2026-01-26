@@ -6,7 +6,7 @@
 if [[ $# -ge 1 ]]; then
   selected=$1
 else
-  selected=$(find ~/code -mindepth 1 -maxdepth 2 -type d | fzf)
+  selected=$(find ~/code -mindepth 2 -maxdepth 2 -type d | fzf)
 fi
 
 if [[ -z $selected ]]; then
