@@ -19,6 +19,7 @@ switch (uname)
     case Darwin
         # brew
         eval (/opt/homebrew/bin/brew shellenv)
+        fish_add_path /opt/homebrew/opt/libpq/bin
 end
 
 if status is-interactive

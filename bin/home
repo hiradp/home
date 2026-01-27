@@ -71,6 +71,27 @@ cmd_setup() {
   log_banner "Setup complete"
 }
 
+cmd_connect() {
+  local zt_file="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Home/zerotier-network-id"
+
+  if [[ ! -f "$zt_file" ]]; then
+    log_dim "ZeroTier network ID file not found, skipping"
+    return 0
+  fi
+
+  local network_id
+  network_id=$(<"$zt_file")
+
+  if [[ -z "$network_id" ]]; then
+    log_warn "ZeroTier network ID file is empty"
+    return 1
+  fi
+
+  log_info "Connecting to ZeroTier network..."
+  sudo zerotier-cli join "$network_id"
+  log_ok "Connected to ZeroTier network"
+}
+
 cmd_help() {
   cat <<EOF
 home - dotfiles manager
@@ -81,6 +102,7 @@ Commands:
   setup                 First-time setup (install + link)
   install [type]        Install packages (essentials, casks, langs, all)
   link [folders...]     Link configs to ~ using stow (default: all)
+  connect               Connect to ZeroTier network (ID from iCloud)
   help                  Show this help message
 
 Environment:
@@ -189,6 +211,7 @@ main() {
   setup) cmd_setup ;;
   install) cmd_install "$@" ;;
   link) cmd_link "$@" ;;
+  connect) cmd_connect ;;
   help | --help | -h) cmd_help ;;
   *)
     log_error "Unknown command: $cmd"

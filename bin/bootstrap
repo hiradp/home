@@ -80,6 +80,9 @@ log_section "Switching to SSH remote"
 git -C "$DOTFILES" remote set-url origin "$SSH_URL"
 log_ok "Remote updated"
 
+log_section "Connecting to ZeroTier"
+"$DOTFILES/bin/home" connect
+
 log_banner "Bootstrap complete"
 
 echo "  Dotfiles: $DOTFILES"
