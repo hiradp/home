@@ -24,6 +24,7 @@ end
 
 if status is-interactive
     # Commands to run in interactive sessions can go here
+    atuin init fish | source
 end
 
 if test -f $WORK_DIR/fish/work.fish
@@ -36,14 +37,11 @@ starship init fish | source
 # --- languages ---
 # Go Lang
 set -x GOPATH $HOME/.local/go
-set -U fish_user_paths $GOPATH/bin $fish_user_paths--
+set -U fish_user_paths $GOPATH/bin $fish_user_paths
 # Node (fnm)
 fnm env | source
 # Rust
 set -U fish_user_paths $HOME/.cargo/bin $fish_user_paths
-
-# --- Tools ---
-fzf --fish | source
 
 # The next line updates PATH for the Google Cloud SDK.
 if test -f ~/.local/opt/google-cloud-sdk/path.fish.inc

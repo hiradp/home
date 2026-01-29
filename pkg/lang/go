@@ -8,4 +8,6 @@ else
   log_info "Installing Go via Homebrew..."
   brew install go
   log_ok "Go $(go version | cut -d' ' -f3)"
+
+  brew install golangci-lint
 fi
