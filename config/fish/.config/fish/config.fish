@@ -27,8 +27,8 @@ if status is-interactive
     atuin init fish | source
 end
 
-if test -f $WORK_DIR/fish/work.fish
-    source $WORK_DIR/fish/work.fish
+if test -f $WORK_DIR/fish/config.fish
+    source $WORK_DIR/fish/config.fish
 end
 
 # --- starship.rs ---
