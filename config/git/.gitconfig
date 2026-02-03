@@ -25,7 +25,7 @@
 [gpg]
   format = ssh
 [commit]
-  ; gpgsign = true
+  gpgsign = true
 [core]
   editor = nvim
 [filter "lfs"]
