@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v ruby &>/dev/null; then
+  log_info "Ruby already installed: $(ruby -v)"
+else
+  log_info "Installing Ruby via Homebrew..."
+  brew install ruby
+  log_ok "Ruby $(ruby -v)"
+fi
