@@ -6,7 +6,7 @@
 if [[ $# -ge 1 ]]; then
   selected=$1
 else
-  selected=$(find ~/code -mindepth 2 -maxdepth 2 -type d | fzf)
+  selected=$(find ~/code -mindepth 1 -maxdepth 1 -type d | fzf)
 fi
 
 if [[ -z $selected ]]; then
@@ -20,14 +20,59 @@ else
   selected_name=$(basename "$selected")
 fi
 
-tmux_running=$(pgrep tmux)
-
-if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
-  tmux new-session -s "$selected_name" -c "$selected"
+# If session exists, just switch to it
+if tmux has-session -t="$selected_name" 2>/dev/null; then
+  tmux switch-client -t "$selected_name"
   exit 0
 fi
 
-if ! tmux has-session -t="$selected_name" 2>/dev/null; then
+# Check if selected directory has subdirectories
+subdirs=$(find "$selected" -mindepth 1 -maxdepth 1 -type d | sort)
+
+if [[ -n $subdirs ]]; then
+  # Build ordered list of projects
+  # If .tmux-config exists, use it for ordering (unlisted dirs appended alphabetically)
+  order_file="$selected/.tmux-config"
+  projects=()
+
+  if [[ -f $order_file ]]; then
+    # Only include directories listed in .tmux-config
+    while IFS= read -r name; do
+      [[ -z $name || $name == \#* ]] && continue
+      if [[ -d "$selected/$name" ]]; then
+        projects+=("$selected/$name")
+      fi
+    done < "$order_file"
+  else
+    for dir in $subdirs; do
+      projects+=("$dir")
+    done
+  fi
+
+  # Template mode: create a window per subdirectory with 3 panes each
+  first=true
+  for project in "${projects[@]}"; do
+    window_name=$(basename "$project")
+
+    if $first; then
+      tmux new-session -ds "$selected_name" -n "$window_name" -c "$project"
+      first=false
+    else
+      tmux new-window -t "$selected_name" -n "$window_name" -c "$project"
+    fi
+
+    # Split: main top, 2 side-by-side on bottom (35%)
+    tmux split-window -t "$selected_name:$window_name" -v -p 35 -c "$project"
+    tmux split-window -t "$selected_name:$window_name" -h -c "$project"
+
+    # Select the top (main) pane
+    tmux select-pane -t "$selected_name:$window_name.1"
+  done
+
+  # Select the first window
+  tmux select-window -t "$selected_name:1"
+else
+  # Simple mode: single window session
   tmux new-session -ds "$selected_name" -c "$selected"
 fi
 
