@@ -3,6 +3,91 @@
 # Inspiration taken from
 # https://github.com/ThePrimeagen/.dotfiles/blob/master/bin/.local/scripts/tmux-sessionizer
 
+# =============================================================================
+# tmux-sessionizer — tmux session bootstrapper with YAML config support
+# =============================================================================
+#
+# Usage:
+#   tmux-sessionizer [dir] [session-name]
+#
+#   dir            Path to the project directory (defaults to fzf selection
+#                  from ~/code/* if omitted)
+#   session-name   Override the session name (defaults to basename of dir)
+#
+# If a session with the resolved name already exists, the script simply
+# switches to it.
+#
+# Modes of operation:
+#
+#   1. YAML config mode — The directory contains subdirectories AND a
+#      .tmux-config.yaml file. Each entry in the `windows` array becomes a
+#      tmux window. Panes, layouts, and startup commands are all driven by
+#      the config.
+#
+#   2. Auto-discovery mode — The directory contains subdirectories but NO
+#      .tmux-config.yaml. One window is created per subdirectory (sorted
+#      alphabetically), each with a single pane whose cwd is the subdir.
+#
+#   3. Simple mode — The directory has no subdirectories. A single-window
+#      session is created with its cwd set to the directory.
+#
+# YAML schema reference (.tmux-config.yaml):
+#
+#   initial_window: <window-name>    # optional — window to focus on session creation
+#                                    #   (defaults to the first window)
+#
+#   defaults:                       # optional — fallback values for all windows
+#     layout: <preset>              # e.g. "main-horizontal", "main-vertical",
+#                                   #      "tiled", "even-horizontal", "even-vertical"
+#     main_size: <percent>          # main pane size as integer (default: 50)
+#
+#   windows:                        # required — list of window definitions
+#     - dir: <relative-path>        # required — subdir relative to the project root
+#       name: <string>              # optional — window title (defaults to dir)
+#       layout: <preset> | <tree>   # optional — preset string OR tree map (see below)
+#       main_size: <percent>        # optional — overrides defaults.main_size
+#       panes:                      # optional — list of shell commands (strings)
+#         - <command>               #   each entry creates a pane; "~" or null = empty
+#         - <command>
+#
+# Preset layouts:
+#   When `layout` is a string (e.g. "main-horizontal"), panes are created via
+#   split-window and then arranged with `tmux select-layout`. The `main_size`
+#   value sets main-pane-height or main-pane-width as a percentage.
+#
+# Tree layouts:
+#   When `layout` is a map, it describes a recursive split tree:
+#
+#     layout:
+#       split: horizontal | vertical   # split direction for this container
+#       size: <percent>                 # optional — size of the first child
+#       panes:                          # list of children (leaves or nested containers)
+#         - <command>                   #   leaf: string command sent to the pane
+#         - split: vertical             #   nested container: recurse
+#           panes:
+#             - <command>
+#             - <command>
+#
+# Examples:
+#
+#   # Minimal multi-window setup — one window per subdir, no panes/layout
+#   windows:
+#     - dir: app-bb
+#     - dir: api-bb
+#     - dir: singularity
+#
+#   # Single window with a preset layout and startup commands
+#   windows:
+#     - dir: .
+#       layout: main-horizontal
+#       main_size: 65
+#       panes:
+#         - vim
+#         - ~
+#
+# Dependencies: tmux, yq, fzf
+# =============================================================================
+
 if [[ $# -ge 1 ]]; then
   selected=$1
 else
@@ -26,51 +111,288 @@ if tmux has-session -t="$selected_name" 2>/dev/null; then
   exit 0
 fi
 
+# --- YAML config support ---
+
+config_file="$selected/.tmux-config.yaml"
+
+# Parse defaults from YAML
+get_default_layout() {
+  yq -r '.defaults.layout | select(. != null)' "$config_file" 2>/dev/null
+}
+
+get_default_main_size() {
+  yq -r '.defaults.main_size // "50"' "$config_file" 2>/dev/null
+}
+
+# Resolve the effective layout for a window index
+resolve_layout() {
+  local idx=$1
+  local win_layout
+  win_layout=$(yq -r ".windows[$idx].layout | select(. != null)" "$config_file")
+
+  if [[ -n $win_layout ]]; then
+    echo "$win_layout"
+  else
+    get_default_layout
+  fi
+}
+
+# Resolve main_size: window override > default
+resolve_main_size() {
+  local idx=$1
+  local win_size
+  win_size=$(yq -r ".windows[$idx].main_size | select(. != null)" "$config_file")
+
+  if [[ -n $win_size ]]; then
+    echo "$win_size"
+  else
+    get_default_main_size
+  fi
+}
+
+# Send a command to a pane (skip if empty/null)
+send_command() {
+  local target=$1
+  local cmd=$2
+  if [[ -n $cmd && $cmd != "null" ]]; then
+    tmux send-keys -t "$target" "$cmd" C-m
+  fi
+}
+
+# Create a window with a preset layout
+create_preset_window() {
+  local session=$1
+  local window_name=$2
+  local dir=$3
+  local layout=$4
+  local main_size=$5
+  local idx=$6
+  local is_first=$7
+
+  # Get pane count
+  local pane_count
+  pane_count=$(yq -r ".windows[$idx].panes | length" "$config_file")
+  if [[ $pane_count -eq 0 || $pane_count == "null" ]]; then
+    pane_count=1
+  fi
+
+  # Create the window (or session if first)
+  if [[ $is_first == "true" ]]; then
+    tmux new-session -ds "$session" -n "$window_name" -c "$dir"
+  else
+    tmux new-window -t "$session" -n "$window_name" -c "$dir"
+  fi
+
+  # Create additional panes
+  local i
+  for ((i = 1; i < pane_count; i++)); do
+    tmux split-window -t "$session:$window_name" -v -c "$dir"
+  done
+
+  # Apply main-pane sizing before select-layout
+  if [[ -n $main_size ]]; then
+    case $layout in
+      main-horizontal)
+        tmux set-window-option -t "$session:$window_name" main-pane-height "${main_size}%" >/dev/null 2>&1
+        ;;
+      main-vertical)
+        tmux set-window-option -t "$session:$window_name" main-pane-width "${main_size}%" >/dev/null 2>&1
+        ;;
+    esac
+  fi
+
+  # Apply layout preset if we have multiple panes
+  if [[ $pane_count -gt 1 && -n $layout ]]; then
+    tmux select-layout -t "$session:$window_name" "$layout"
+  fi
+
+  # Send commands to each pane
+  for ((i = 0; i < pane_count; i++)); do
+    local cmd
+    cmd=$(yq -r ".windows[$idx].panes[$i] | select(. != null)" "$config_file")
+    send_command "$session:$window_name.$((i + 1))" "$cmd"
+  done
+
+  # Select the first pane
+  tmux select-pane -t "$session:$window_name.1"
+}
+
+# Recursive tree layout handler
+# Arguments: session, window_name, target_pane_id, yq_path, dir
+apply_tree() {
+  local session=$1
+  local window_name=$2
+  local target_pane=$3
+  local yq_path=$4
+  local dir=$5
+
+  local node_type
+  node_type=$(yq -r "$yq_path | type" "$config_file")
+
+  # Leaf node: string or null → send command
+  if [[ $node_type == "!!str" || $node_type == "!!null" ]]; then
+    local cmd
+    cmd=$(yq -r "$yq_path | select(. != null)" "$config_file")
+    send_command "$target_pane" "$cmd"
+    return
+  fi
+
+  # Check if this is a split container
+  local split_dir
+  split_dir=$(yq -r "${yq_path}.split | select(. != null)" "$config_file")
+
+  if [[ -z $split_dir ]]; then
+    # Scalar string in object context — treat as leaf
+    local cmd
+    cmd=$(yq -r "$yq_path | select(. != null)" "$config_file")
+    send_command "$target_pane" "$cmd"
+    return
+  fi
+
+  # Container node
+  local size
+  size=$(yq -r "${yq_path}.size | select(. != null)" "$config_file")
+  local child_count
+  child_count=$(yq -r "${yq_path}.panes | length" "$config_file")
+
+  # Determine split flag
+  local split_flag
+  if [[ $split_dir == "vertical" ]]; then
+    split_flag="-v"
+  else
+    split_flag="-h"
+  fi
+
+  # First child gets the current target pane
+  local current_pane=$target_pane
+
+  # Process first child (it inherits the current pane)
+  apply_tree "$session" "$window_name" "$current_pane" "${yq_path}.panes[0]" "$dir"
+
+  # Process remaining children
+  local i
+  for ((i = 1; i < child_count; i++)); do
+    # Calculate split percentage
+    local split_pct
+    if [[ -n $size && $i -eq 1 ]]; then
+      # First split: the new pane gets (100 - size)% of the original
+      split_pct=$((100 - size))
+    else
+      # Equal share: each remaining child gets 1/(children left) of current space
+      split_pct=$((100 - 100 / (child_count - i + 1)))
+    fi
+
+    # Split and capture the new pane ID
+    local new_pane
+    new_pane=$(tmux split-window -t "$current_pane" $split_flag -p "$split_pct" -c "$dir" -P -F '#{pane_id}')
+
+    # Recurse into the child with the new pane
+    apply_tree "$session" "$window_name" "$new_pane" "${yq_path}.panes[$i]" "$dir"
+
+    # Update current_pane to split from — for equal splits, split from the new pane
+    # so each subsequent child splits off from the "remaining" chunk
+    current_pane=$new_pane
+  done
+}
+
+# Create a window with a tree layout
+create_tree_window() {
+  local session=$1
+  local window_name=$2
+  local dir=$3
+  local idx=$4
+  local is_first=$5
+
+  # Create the window
+  if [[ $is_first == "true" ]]; then
+    tmux new-session -ds "$session" -n "$window_name" -c "$dir"
+  else
+    tmux new-window -t "$session" -n "$window_name" -c "$dir"
+  fi
+
+  # Get the initial pane ID
+  local root_pane
+  root_pane=$(tmux display-message -t "$session:$window_name" -p '#{pane_id}')
+
+  # Apply the tree recursively
+  apply_tree "$session" "$window_name" "$root_pane" ".windows[$idx].layout" "$dir"
+
+  # Select the first pane
+  tmux select-pane -t "$session:$window_name.1"
+}
+
+# --- Main logic ---
+
 # Check if selected directory has subdirectories
 subdirs=$(find "$selected" -mindepth 1 -maxdepth 1 -type d | sort)
 
 if [[ -n $subdirs ]]; then
-  # Build ordered list of projects
-  # If .tmux-config exists, use it for ordering (unlisted dirs appended alphabetically)
-  order_file="$selected/.tmux-config"
-  projects=()
+  if [[ -f $config_file ]]; then
+    # YAML config mode
+    window_count=$(yq -r '.windows | length' "$config_file")
+    first=true
 
-  if [[ -f $order_file ]]; then
-    # Only include directories listed in .tmux-config
-    while IFS= read -r name; do
-      [[ -z $name || $name == \#* ]] && continue
-      if [[ -d "$selected/$name" ]]; then
-        projects+=("$selected/$name")
+    for ((idx = 0; idx < window_count; idx++)); do
+      dir_name=$(yq -r ".windows[$idx].dir" "$config_file")
+      window_name=$(yq -r ".windows[$idx].name | select(. != null)" "$config_file")
+      if [[ -z $window_name ]]; then
+        window_name=$dir_name
       fi
-    done < "$order_file"
-  else
-    for dir in $subdirs; do
-      projects+=("$dir")
-    done
-  fi
+      dir="$selected/$dir_name"
 
-  # Template mode: create a window per subdirectory with 3 panes each
-  first=true
-  for project in "${projects[@]}"; do
-    window_name=$(basename "$project")
+      if [[ ! -d $dir ]]; then
+        continue
+      fi
 
-    if $first; then
-      tmux new-session -ds "$selected_name" -n "$window_name" -c "$project"
+      # Determine layout type
+      layout_type=$(yq -r ".windows[$idx].layout | type" "$config_file")
+      layout_value=$(resolve_layout "$idx")
+      main_size=$(resolve_main_size "$idx")
+
+      if [[ $layout_type == "!!map" ]]; then
+        # Tree layout
+        create_tree_window "$selected_name" "$window_name" "$dir" "$idx" "$first"
+      else
+        # Preset layout (string or absent)
+        pane_count=$(yq -r ".windows[$idx].panes | length" "$config_file" 2>/dev/null)
+
+        # Determine effective layout
+        effective_layout=$layout_value
+        if [[ -z $effective_layout && $pane_count -gt 1 ]]; then
+          effective_layout="main-horizontal"
+        fi
+
+        create_preset_window "$selected_name" "$window_name" "$dir" "$effective_layout" "$main_size" "$idx" "$first"
+      fi
+
       first=false
+    done
+
+    # Select the configured window, or fall back to the first
+    local select_window
+    select_window=$(yq -r '.initial_window | select(. != null)' "$config_file" 2>/dev/null)
+    if [[ -n $select_window ]]; then
+      tmux select-window -t "$selected_name:$select_window"
     else
-      tmux new-window -t "$selected_name" -n "$window_name" -c "$project"
+      tmux select-window -t "$selected_name:1"
     fi
+  else
+    # Auto-discovery mode: all subdirs, single pane each
+    first=true
+    for project in $subdirs; do
+      window_name=$(basename "$project")
 
-    # Split: main top, 2 side-by-side on bottom (35%)
-    tmux split-window -t "$selected_name:$window_name" -v -p 35 -c "$project"
-    tmux split-window -t "$selected_name:$window_name" -h -c "$project"
+      if $first; then
+        tmux new-session -ds "$selected_name" -n "$window_name" -c "$project"
+        first=false
+      else
+        tmux new-window -t "$selected_name" -n "$window_name" -c "$project"
+      fi
+    done
 
-    # Select the top (main) pane
-    tmux select-pane -t "$selected_name:$window_name.1"
-  done
-
-  # Select the first window
-  tmux select-window -t "$selected_name:1"
+    # Select the first window
+    tmux select-window -t "$selected_name:1"
+  fi
 else
   # Simple mode: single window session
   tmux new-session -ds "$selected_name" -c "$selected"
