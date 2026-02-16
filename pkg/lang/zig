@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v zig &>/dev/null; then
+  log_info "Zig already installed: $(zig version)"
+else
+  log_info "Installing Zig via Homebrew..."
+  brew install zig
+  log_ok "$(zig version)"
+fi
