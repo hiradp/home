@@ -30,6 +30,7 @@ cmd_install() {
 
   case "$type" in
   essentials)
+    _tap_from_file "$DOTFILES/pkg/brew/taps"
     _install_from_file "$DOTFILES/pkg/brew/essentials"
     ;;
   casks)
@@ -39,6 +40,7 @@ cmd_install() {
     _install_langs
     ;;
   all)
+    _tap_from_file "$DOTFILES/pkg/brew/taps"
     _install_from_file "$DOTFILES/pkg/brew/essentials"
     _install_from_file "$DOTFILES/pkg/brew/cask" --cask
     _install_langs
@@ -170,6 +172,18 @@ EOF
   fi
 
   ssh-add --apple-use-keychain "$ssh_dir/id_ed25519" 2>/dev/null || true
+}
+
+_tap_from_file() {
+  local file="$1"
+  [[ -f "$file" ]] || return 0
+  while IFS= read -r tap || [[ -n "$tap" ]]; do
+    [[ -z "$tap" || "$tap" =~ ^# ]] && continue
+    log_dim "Tapping $tap..."
+    if ! brew tap "$tap" </dev/null; then
+      log_warn "Failed to tap $tap"
+    fi
+  done <"$file"
 }
 
 _install_from_file() {

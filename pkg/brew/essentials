@@ -1,6 +1,6 @@
 bash
 btop
-cormacrelf/tap/dark-notify
+dark-notify
 eza
 fd
 fish
@@ -14,6 +14,7 @@ libpq
 neofetch
 neovim
 ripgrep
+sf-symbols
 starship
 stow
 tmux
