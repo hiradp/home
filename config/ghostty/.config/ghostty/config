@@ -4,12 +4,6 @@ command = "/opt/homebrew/bin/fish -c 'tmux attach || tmux'"
 confirm-close-surface = false
 shell-integration = fish
 
-# Quick terminal Settings
-quick-terminal-autohide = true
-quick-terminal-position = "top"
-quick-terminal-size = 40%
-keybind = global:cmd+grave_accent=toggle_quick_terminal
-
 # Font settings
 font-family = "Berkeley Mono"
 font-size = 11
