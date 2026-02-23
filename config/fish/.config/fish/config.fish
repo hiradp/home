@@ -24,6 +24,7 @@ end
 
 if status is-interactive
     # Commands to run in interactive sessions can go here
+    atuin init fish | source
 end
 
 if test -f $WORK_DIR/fish/config.fish

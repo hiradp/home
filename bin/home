@@ -3,7 +3,7 @@
 set -euo pipefail
 
 DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
-DEFAULT_FOLDERS="fish ghostty git nvim starship tmux"
+DEFAULT_FOLDERS="atuin fish ghostty git nvim starship tmux"
 
 # Source logging library
 source "$DOTFILES/lib/log.sh"
