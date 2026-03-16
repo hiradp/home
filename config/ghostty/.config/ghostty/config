@@ -7,11 +7,14 @@ shell-integration = fish
 # Font settings
 font-family = "Berkeley Mono"
 font-size = 10
+adjust-cell-height = 10%
 
 # Window Settings
+cursor-click-to-move = true
 window-height = 100
 window-width = 300
-window-padding-y = 5
+window-padding-x = 8
+window-padding-y = 8
 window-save-state = always
 
 # MacOS specific settings
