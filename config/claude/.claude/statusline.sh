@@ -91,6 +91,18 @@ if [ -n "$cwd" ]; then
   git_branch=$(git -C "${cwd}" --no-optional-locks rev-parse --abbrev-ref HEAD 2>/dev/null)
   if [ -n "$git_branch" ]; then
     folder_part+="${dim}@${reset}${git_branch_color}${git_branch}${reset}"
+
+    # Ahead/behind relative to upstream (silently skipped if no upstream)
+    ab=$(git -C "${cwd}" --no-optional-locks rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)
+    if [ -n "$ab" ]; then
+      behind=$(echo "$ab" | awk '{print $1}')
+      ahead=$(echo "$ab" | awk '{print $2}')
+      ab_part=""
+      [ "$ahead" -gt 0 ] 2>/dev/null && ab_part+="\033[1;32m↑${ahead}\033[0m"
+      [ "$behind" -gt 0 ] 2>/dev/null && ab_part+="\033[1;33m↓${behind}\033[0m"
+      [ -n "$ab_part" ] && folder_part+=" ${ab_part}"
+    fi
+
     git_stat=$(git -C "${cwd}" --no-optional-locks diff --numstat 2>/dev/null | awk '{a+=$1; d+=$2} END {if (a+d>0) printf "+%d -%d", a, d}')
     if [ -n "$git_stat" ]; then
       add_part="${git_stat%% *}"
