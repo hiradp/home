@@ -23,25 +23,21 @@ sep="${dim} | ${reset}"
 
 # ===== Extract data =====
 cwd=$(echo "$input" | jq -r '.cwd // empty')
+workspace_current=$(echo "$input" | jq -r '.workspace.current_dir // empty')
+workspace_project=$(echo "$input" | jq -r '.workspace.project_dir // empty')
+session_id=$(echo "$input" | jq -r '.session_id // empty')
+session_name=$(echo "$input" | jq -r '.session_name // empty')
 model_name=$(echo "$input" | jq -r '.model.display_name // "Claude"')
-# Strip " (NNk context)" / " (NM context)" suffix
-model_name=$(echo "$model_name" | sed 's/ *([0-9.]*[kKmM]* context)//')
 effort_level=$(echo "$input" | jq -r '.effort.level // empty')
 
 # Context window
 size=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')
 [ "$size" -eq 0 ] 2>/dev/null && size=200000
 
-input_tokens=$(echo "$input" | jq -r '.context_window.current_usage.input_tokens // 0')
-cache_create=$(echo "$input" | jq -r '.context_window.current_usage.cache_creation_input_tokens // 0')
-cache_read=$(echo "$input" | jq -r '.context_window.current_usage.cache_read_input_tokens // 0')
-current=$((input_tokens + cache_create + cache_read))
-
-if [ "$size" -gt 0 ]; then
-  pct_real=$((current * 100 / size))
-else
-  pct_real=0
-fi
+# Use pre-computed used_percentage (reflects true context pressure including cached tokens).
+# Falls back to 0 when null (i.e. no API call has been made yet this session).
+pct_real=$(echo "$input" | jq -r '.context_window.used_percentage // 0')
+pct_real=$(printf "%.0f" "$pct_real" 2>/dev/null || echo 0)
 
 # Scale: 80% real -> 100% displayed; cap at 100
 pct_scaled=$(( pct_real * 100 / 80 ))
@@ -85,8 +81,23 @@ bar+="${reset}"
 # ===== Folder + git =====
 folder_part=""
 if [ -n "$cwd" ]; then
-  display_dir="${cwd##*/}"
+  # Worktree detection: when workspace.current_dir and workspace.project_dir are
+  # both present and differ, show "project⎇worktree"; otherwise just the basename.
+  if [ -n "$workspace_current" ] && [ -n "$workspace_project" ] && [ "$workspace_current" != "$workspace_project" ]; then
+    project_basename="${workspace_project##*/}"
+    current_basename="${workspace_current##*/}"
+    display_dir="${project_basename}${dim}⎇${reset}${current_basename}"
+  else
+    display_dir="${cwd##*/}"
+  fi
   folder_part="${display_dir}"
+
+  # Session name: render only when non-empty AND not a raw UUID (defensive guard)
+  # UUID pattern: 8-4-4-4-12 hex chars
+  uuid_pattern='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+  if [ -n "$session_name" ] && [ "$session_name" != "$session_id" ] && ! echo "$session_name" | grep -qE "$uuid_pattern"; then
+    folder_part+="${dim}:${session_name}${reset}"
+  fi
 
   git_branch=$(git -C "${cwd}" --no-optional-locks rev-parse --abbrev-ref HEAD 2>/dev/null)
   if [ -n "$git_branch" ]; then
@@ -137,6 +148,38 @@ else
   size_fmt="$size"
 fi
 out+="${bar} ${bar_color}${pct_scaled}%${reset}${dim} / ${size_fmt}${reset}"
+
+# ===== Rate-limit chips =====
+# Fields are only present for Claude.ai subscribers after the first API response.
+rl_five=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
+rl_week=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
+
+# Helper: pick color for a usage percentage (applied to the number only).
+# < 70 → dim  ≥70 → yellow  ≥85 → orange  ≥95 → red
+_rl_color() {
+  local pct="$1"
+  if [ "$pct" -ge 95 ] 2>/dev/null; then
+    printf '%b' '\033[1;31m'
+  elif [ "$pct" -ge 85 ] 2>/dev/null; then
+    printf '%b' '\033[1;38;2;255;140;0m'
+  elif [ "$pct" -ge 70 ] 2>/dev/null; then
+    printf '%b' '\033[1;33m'
+  else
+    printf '%b' '\033[2m'
+  fi
+}
+
+if [ -n "$rl_five" ]; then
+  rl_five_int=$(printf "%.0f" "$rl_five" 2>/dev/null || echo 0)
+  rl_five_color=$(_rl_color "$rl_five_int")
+  out+="${dim} · ${reset}5h ${rl_five_color}${rl_five_int}%${reset}"
+fi
+
+if [ -n "$rl_week" ]; then
+  rl_week_int=$(printf "%.0f" "$rl_week" 2>/dev/null || echo 0)
+  rl_week_color=$(_rl_color "$rl_week_int")
+  out+="${dim} · ${reset}wk ${rl_week_color}${rl_week_int}%${reset}"
+fi
 
 printf "%b" "$out"
 exit 0
