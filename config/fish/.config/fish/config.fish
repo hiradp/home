@@ -38,8 +38,6 @@ starship init fish | source
 # Go Lang
 set -x GOPATH $HOME/.local/go
 set -U fish_user_paths $GOPATH/bin $fish_user_paths
-# Node (fnm)
-fnm env | source
 # Rust
 set -U fish_user_paths $HOME/.cargo/bin $fish_user_paths
 

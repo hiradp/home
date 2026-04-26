@@ -140,7 +140,7 @@ Examples:
   home install              Install all packages
   home install essentials   Install only CLI tools
   home install casks        Install only GUI apps
-  home install langs        Install language runtimes (Node.js via nvm)
+  home install langs        Install language runtimes (bun, go, python, ruby, rust, zig)
   home link                 Link all config folders
   home link nvim fish       Link only nvim and fish configs
 EOF

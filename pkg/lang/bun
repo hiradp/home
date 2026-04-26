@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v bun &>/dev/null; then
+  log_info "bun already installed"
+else
+  log_info "Installing bun via Homebrew..."
+  brew install oven-sh/bun/bun
+fi
+
+log_ok "bun $(bun --version)"
