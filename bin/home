@@ -64,6 +64,9 @@ cmd_setup() {
   log_section "Setting up SSH keys"
   _setup_ssh
 
+  log_section "Configuring remotes"
+  _setup_remotes
+
   log_section "Installing brew packages"
   cmd_install
 
@@ -224,6 +227,33 @@ _install_from_file() {
       log_warn "Failed to install $package (may already exist outside Homebrew)"
     fi
   done <"$file"
+}
+
+_setup_remotes() {
+  local private_url="git@github.com:hiradp/home-private.git"
+  local public_url="git@github.com:hiradp/home.git"
+
+  if git ls-remote "$private_url" HEAD &>/dev/null; then
+    git -C "$DOTFILES" remote set-url origin "$private_url"
+    if git -C "$DOTFILES" remote | grep -qx upstream; then
+      git -C "$DOTFILES" remote set-url upstream "$public_url"
+    else
+      git -C "$DOTFILES" remote add upstream "$public_url"
+    fi
+    log_ok "origin → home-private, upstream → home"
+
+    log_info "Pulling from origin/main..."
+    git -C "$DOTFILES" fetch origin
+    if git -C "$DOTFILES" pull --ff-only origin main; then
+      git -C "$DOTFILES" branch --set-upstream-to=origin/main main &>/dev/null || true
+      log_ok "Up to date with origin/main"
+    else
+      log_warn "Could not fast-forward to origin/main"
+    fi
+  else
+    git -C "$DOTFILES" remote set-url origin "$public_url"
+    log_dim "No access to home-private; origin → home"
+  fi
 }
 
 _install_langs() {

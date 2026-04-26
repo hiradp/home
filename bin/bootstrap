@@ -6,7 +6,6 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/hiradp/home.git"
-SSH_URL="git@github.com:hiradp/home.git"
 DOTFILES="$HOME/Code/hiradp/home"
 
 # ------------------------------------------------------------------------------
@@ -75,10 +74,6 @@ fi
 
 log_section "Running setup"
 "$DOTFILES/bin/home" setup </dev/tty
-
-log_section "Switching to SSH remote"
-git -C "$DOTFILES" remote set-url origin "$SSH_URL"
-log_ok "Remote updated"
 
 log_section "Connecting to ZeroTier"
 "$DOTFILES/bin/home" connect
