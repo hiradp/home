@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# tmux-theme — match tmux theme to macOS appearance.
+#
+# Usage:
+#   tmux-theme              Detect current macOS appearance and apply once.
+#   tmux-theme light|dark   Force a specific theme.
+#   tmux-theme --watch      Run a foreground watcher that reapplies on changes.
+
+set -euo pipefail
+
+themes_dir="${HOME}/.config/tmux/themes"
+pidfile="${TMPDIR:-/tmp}/tmux-theme-watch.pid"
+
+apply() {
+  local mode="$1"
+  local file="${themes_dir}/${mode}.conf"
+  if [[ ! -f "$file" ]]; then
+    echo "tmux-theme: $file not found" >&2
+    exit 1
+  fi
+  tmux source-file "$file" >/dev/null 2>&1 || true
+}
+
+detect() {
+  if [[ "$(defaults read -g AppleInterfaceStyle 2>/dev/null)" == "Dark" ]]; then
+    echo dark
+  else
+    echo light
+  fi
+}
+
+watch() {
+  if [[ -f "$pidfile" ]]; then
+    local prev
+    prev="$(cat "$pidfile" 2>/dev/null || true)"
+    if [[ -n "$prev" ]] && kill -0 "$prev" 2>/dev/null; then
+      kill "$prev" 2>/dev/null || true
+    fi
+  fi
+  echo "$$" >"$pidfile"
+  trap 'rm -f "$pidfile"' EXIT
+
+  dark-notify | while read -r mode; do
+    apply "$mode"
+  done
+}
+
+case "${1:-}" in
+--watch) watch ;;
+light | dark) apply "$1" ;;
+"") apply "$(detect)" ;;
+*)
+  echo "tmux-theme: unknown arg: $1" >&2
+  exit 1
+  ;;
+esac
