@@ -73,6 +73,27 @@ cmd_setup() {
   log_banner "Setup complete"
 }
 
+cmd_upgrade() {
+  log_banner "Home Upgrade"
+
+  log_section "Upgrading brew packages"
+  brew update
+  brew upgrade
+  log_ok "Brew packages upgraded"
+
+  log_section "Upgrading Neovim plugins"
+  nvim --headless "+Lazy! sync" +qa
+  log_ok "Neovim plugins upgraded"
+
+  local work="${WORK_DIR:-}/bin/work"
+  if [[ -n "${WORK_DIR:-}" && -x "$work" ]]; then
+    log_section "Upgrading work"
+    "$work" upgrade
+  fi
+
+  log_banner "Upgrade complete"
+}
+
 cmd_connect() {
   local zt_file="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Home/zerotier-network-id"
 
@@ -104,6 +125,7 @@ Commands:
   setup                 First-time setup (install + link)
   install [type]        Install packages (essentials, casks, langs, all)
   link [folders...]     Link configs to ~ using stow (default: all)
+  upgrade               Upgrade brew packages, Neovim plugins, and work (if present)
   connect               Connect to ZeroTier network (ID from iCloud)
   help                  Show this help message
 
@@ -225,6 +247,7 @@ main() {
   setup) cmd_setup ;;
   install) cmd_install "$@" ;;
   link) cmd_link "$@" ;;
+  upgrade) cmd_upgrade ;;
   connect) cmd_connect ;;
   help | --help | -h) cmd_help ;;
   *)
