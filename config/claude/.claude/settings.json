@@ -2,6 +2,9 @@
   "env": {
     "CLAUDE_CODE_NO_FLICKER": "1"
   },
+  "permissions": {
+    "defaultMode": "auto"
+  },
   "model": "opus[1m]",
   "statusLine": {
     "type": "command",
@@ -9,7 +12,5 @@
   },
   "effortLevel": "xhigh",
   "skipAutoPermissionPrompt": true,
-  "permissions": {
-    "defaultMode": "auto"
-  }
+  "theme": "auto"
 }
