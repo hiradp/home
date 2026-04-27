@@ -26,7 +26,16 @@ cmd_link() {
 }
 
 cmd_install() {
-  local type="${1:-all}"
+  local with_work=false
+  local positional=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    --work) with_work=true; shift ;;
+    *) positional+=("$1"); shift ;;
+    esac
+  done
+
+  local type="${positional[0]:-all}"
 
   case "$type" in
   essentials)
@@ -51,6 +60,11 @@ cmd_install() {
     exit 1
     ;;
   esac
+
+  if [[ "$with_work" == true ]]; then
+    log_section "Installing work"
+    _run_work install
+  fi
 
   log_ok "Installed"
 }
@@ -77,6 +91,14 @@ cmd_setup() {
 }
 
 cmd_upgrade() {
+  local with_work=false
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    --work) with_work=true; shift ;;
+    *) shift ;;
+    esac
+  done
+
   log_banner "Home Upgrade"
 
   log_section "Upgrading brew packages"
@@ -88,10 +110,9 @@ cmd_upgrade() {
   nvim --headless "+Lazy! sync" +qa
   log_ok "Neovim plugins upgraded"
 
-  local work="${WORK_DIR:-}/bin/work"
-  if [[ -n "${WORK_DIR:-}" && -x "$work" ]]; then
+  if [[ "$with_work" == true ]]; then
     log_section "Upgrading work"
-    "$work" upgrade
+    _run_work upgrade
   fi
 
   log_banner "Upgrade complete"
@@ -128,19 +149,26 @@ Commands:
   setup                 First-time setup (install + link)
   install [type]        Install packages (essentials, casks, langs, all)
   link [folders...]     Link configs to ~ using stow (default: all)
-  upgrade               Upgrade brew packages, Neovim plugins, and work (if present)
+  upgrade               Upgrade brew packages and Neovim plugins
   connect               Connect to ZeroTier network (ID from iCloud)
   help                  Show this help message
 
+Flags:
+  --work                Also run the matching work command (install or upgrade only)
+
 Environment:
   DOTFILES              Path to dotfiles repo (default: ~/Code/hiradp/home)
+  WORK_DIR              Path to work repo (default: ~/Code/hiradp/work)
 
 Examples:
   home setup                First-time machine setup
   home install              Install all packages
+  home install --work       Install all packages, then run 'work install'
   home install essentials   Install only CLI tools
   home install casks        Install only GUI apps
   home install langs        Install language runtimes (bun, go, python, ruby, rust, zig)
+  home upgrade              Upgrade brew + nvim plugins
+  home upgrade --work       Upgrade home, then run 'work upgrade'
   home link                 Link all config folders
   home link nvim fish       Link only nvim and fish configs
 EOF
@@ -263,6 +291,15 @@ _install_langs() {
     log_dim "$(basename "$script")"
     source "$script"
   done
+}
+
+_run_work() {
+  local work="${WORK_DIR:-$HOME/Code/hiradp/work}/bin/work"
+  if [[ ! -x "$work" ]]; then
+    log_error "work CLI not found at $work"
+    return 1
+  fi
+  "$work" "$@"
 }
 
 # ------------------------------------------------------------------------------
