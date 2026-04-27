@@ -101,6 +101,10 @@ cmd_upgrade() {
 
   log_banner "Home Upgrade"
 
+  log_section "Pulling latest"
+  git -C "$DOTFILES" pull --ff-only
+  log_ok "Up to date"
+
   log_section "Upgrading brew packages"
   brew update
   brew upgrade
