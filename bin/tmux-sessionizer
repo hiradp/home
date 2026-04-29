@@ -338,7 +338,11 @@ if [[ -n $subdirs ]]; then
       if [[ -z $window_name ]]; then
         window_name=$dir_name
       fi
-      dir="$selected/$dir_name"
+      case $dir_name in
+        /*) dir=$dir_name ;;
+        ~*) dir=${dir_name/#\~/$HOME} ;;
+        *) dir="$selected/$dir_name" ;;
+      esac
 
       if [[ ! -d $dir ]]; then
         continue
