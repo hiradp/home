@@ -5,6 +5,7 @@ set -U fish_greeting
 
 # set project directory
 set -x HOME_DIR $HOME/Code/hiradp/home
+set -x NOTES_DIR "$HOME/Library/Mobile Documents/com~apple~CloudDocs/Obsidian/Notes"
 set -x WORK_DIR $HOME/Code/hiradp/work
 
 # Set local bin
