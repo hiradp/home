@@ -30,8 +30,14 @@ cmd_install() {
   local positional=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    --work) with_work=true; shift ;;
-    *) positional+=("$1"); shift ;;
+    --work)
+      with_work=true
+      shift
+      ;;
+    *)
+      positional+=("$1")
+      shift
+      ;;
     esac
   done
 
@@ -94,7 +100,10 @@ cmd_upgrade() {
   local with_work=false
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    --work) with_work=true; shift ;;
+    --work)
+      with_work=true
+      shift
+      ;;
     *) shift ;;
     esac
   done
