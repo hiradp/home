@@ -33,5 +33,7 @@
   smudge = git-lfs smudge -- %f
   process = git-lfs filter-process
   required = true
-[include]
-  path = ~/.gitconfig.local
+[includeIf "gitdir:~/Code/planetscale/"]
+  path = ~/Code/hiradp/work/config/git/.gitconfig
+[includeIf "gitdir:~/Code/hiradp/work/"]
+  path = ~/Code/hiradp/work/config/git/.gitconfig
