@@ -1,0 +1,57 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this repo is
+
+Personal dotfiles, managed by the `home` CLI in `bin/home`. There is no build, no test suite, and no language toolchain — it's bash + GNU stow + Homebrew package lists.
+
+## Common commands
+
+```bash
+home setup                # First-time machine setup (brew + ssh + remotes + install + link)
+home install [type]       # Install brew packages: essentials | casks | langs | all (default)
+home install --work       # Also runs `work install` from $WORK_DIR (defaults to ~/Code/hiradp/work)
+home link [folders...]    # Stow configs into $HOME (default: all in $DEFAULT_FOLDERS)
+home upgrade              # git pull --ff-only, brew update/upgrade, nvim Lazy! sync
+home upgrade --work       # Plus `work upgrade`
+home connect              # Join ZeroTier network using ID stored in iCloud
+```
+
+`bin/bootstrap` is the curl-piped fresh-Mac entrypoint: it installs Xcode CLI tools, clones the repo to `$DOTFILES` (default `~/Code/hiradp/home`), then runs `home setup`.
+
+## Architecture
+
+### Stow layout
+
+Configs live under `config/<tool>/.config/<tool>/...` so that `stow -d config <tool> -t $HOME` materializes them at `~/.config/<tool>`. When adding a new tool:
+
+1. Create `config/<tool>/.config/<tool>/...` with the actual config files.
+2. Add `<tool>` to `DEFAULT_FOLDERS` in `bin/home`.
+3. Re-run `home link` (it un-stows then re-stows, so it's idempotent).
+
+A few configs target `$HOME` directly rather than `~/.config` — check the directory layout under `config/<tool>/` before assuming.
+
+### Package lists
+
+`pkg/brew/{taps,essentials,cask}` are plain newline-separated text files; `#` comments and blank lines are skipped. `pkg/lang/*` are shell snippets (one per runtime: bun, go, python, ruby, rust, zig) that get **sourced** (not executed) from `_install_langs`, so they share the parent shell's environment and `log_*` helpers.
+
+### Logging convention
+
+All scripts (except `bootstrap`, which inlines its own copy because it runs before the repo exists) source `lib/log.sh` and use `log_banner / log_section / log_info / log_ok / log_warn / log_error / log_dim`. Use these instead of raw `echo` to keep output consistent. Every bash file starts with `set -euo pipefail`.
+
+### Two-remote setup
+
+`origin` points to the **private** mirror `git@github.com:hiradp/home-private.git`; `upstream` points to the **public** `git@github.com:hiradp/home.git`. `home setup` configures these automatically when the user has access to the private repo. `main` tracks `origin/main`. To publish a subset of private commits to upstream, use the `manage-upstream` skill at `.claude/skills/manage-upstream/SKILL.md` — do not push to `upstream` ad-hoc.
+
+### tmux-sessionizer
+
+`bin/tmux-sessionizer` is a substantial script that creates tmux sessions from `.tmux-config.yaml` files (or auto-discovers from subdirectories). Full schema is documented in the script header — read it before changing layout/pane logic. Supports preset layouts (`main-horizontal` etc.), recursive tree layouts (split maps with `panes`), and absolute / `~`-prefixed `dir` values.
+
+### tmux-theme
+
+`bin/tmux-theme` matches tmux to macOS appearance. `--watch` mode uses `dark-notify` and PID-files itself in `$TMPDIR`; running it again kills the previous watcher.
+
+## Commit style
+
+Conventional Commits with a tool-scoped prefix: `feat(nvim): …`, `chore(brew): …`, `fix(tmux): …`, `style(home): …`. Match recent `git log` exactly when in doubt. Commits are typically tight and single-purpose.
