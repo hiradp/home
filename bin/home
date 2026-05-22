@@ -128,6 +128,16 @@ cmd_upgrade() {
     _run_work upgrade
   fi
 
+  log_section "Committing changes"
+  if [[ -z "$(git -C "$DOTFILES" status --porcelain)" ]]; then
+    log_dim "Nothing to commit"
+  else
+    git -C "$DOTFILES" add -A
+    git -C "$DOTFILES" commit -m "chore: upgrade"
+    git -C "$DOTFILES" push
+    log_ok "Changes committed and pushed"
+  fi
+
   log_banner "Upgrade complete"
 }
 
@@ -162,7 +172,7 @@ Commands:
   setup                 First-time setup (install + link)
   install [type]        Install packages (essentials, casks, langs, all)
   link [folders...]     Link configs to ~ using stow (default: all)
-  upgrade               Upgrade brew packages and Neovim plugins
+  upgrade               Upgrade brew packages and Neovim plugins, then commit + push
   connect               Connect to ZeroTier network (ID from iCloud)
   help                  Show this help message
 
@@ -180,7 +190,7 @@ Examples:
   home install essentials   Install only CLI tools
   home install casks        Install only GUI apps
   home install langs        Install language runtimes (bun, go, python, ruby, rust, zig)
-  home upgrade              Upgrade brew + nvim plugins
+  home upgrade              Upgrade brew + nvim plugins, commit + push changes
   home upgrade --work       Upgrade home, then run 'work upgrade'
   home link                 Link all config folders
   home link nvim fish       Link only nvim and fish configs
