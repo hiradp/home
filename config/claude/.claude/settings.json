@@ -11,6 +11,11 @@
     "command": "~/.claude/statusline.sh"
   },
   "effortLevel": "xhigh",
+  "theme": "auto",
   "skipAutoPermissionPrompt": true,
-  "theme": "auto"
+  "voiceEnabled": true,
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  }
 }
