@@ -54,15 +54,19 @@ cmd_install() {
   langs)
     _install_langs
     ;;
+  tools)
+    _install_tools
+    ;;
   all)
     _tap_from_file "$DOTFILES/pkg/brew/taps"
     _install_from_file "$DOTFILES/pkg/brew/essentials"
     _install_from_file "$DOTFILES/pkg/brew/cask" --cask
     _install_langs
+    _install_tools
     ;;
   *)
     log_error "Unknown install type: $type"
-    log_info "Valid types: essentials, casks, langs, all"
+    log_info "Valid types: essentials, casks, langs, tools, all"
     exit 1
     ;;
   esac
@@ -170,7 +174,7 @@ Usage: home <command> [args]
 
 Commands:
   setup                 First-time setup (install + link)
-  install [type]        Install packages (essentials, casks, langs, all)
+  install [type]        Install packages (essentials, casks, langs, tools, all)
   link [folders...]     Link configs to ~ using stow (default: all)
   upgrade               Upgrade brew packages and Neovim plugins, then commit + push
   connect               Connect to ZeroTier network (ID from iCloud)
@@ -190,6 +194,7 @@ Examples:
   home install essentials   Install only CLI tools
   home install casks        Install only GUI apps
   home install langs        Install language runtimes (bun, go, python, ruby, rust, zig)
+  home install tools        Install standalone tools (cursor)
   home upgrade              Upgrade brew + nvim plugins, commit + push changes
   home upgrade --work       Upgrade home, then run 'work upgrade'
   home link                 Link all config folders
@@ -310,6 +315,15 @@ _setup_remotes() {
 _install_langs() {
   log_info "Installing language runtimes..."
   for script in "$DOTFILES/pkg/lang"/*; do
+    [[ -f "$script" ]] || continue
+    log_dim "$(basename "$script")"
+    source "$script"
+  done
+}
+
+_install_tools() {
+  log_info "Installing tools..."
+  for script in "$DOTFILES/pkg/tool"/*; do
     [[ -f "$script" ]] || continue
     log_dim "$(basename "$script")"
     source "$script"

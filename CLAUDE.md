@@ -10,7 +10,7 @@ Personal dotfiles, managed by the `home` CLI in `bin/home`. There is no build, n
 
 ```bash
 home setup                # First-time machine setup (brew + ssh + remotes + install + link)
-home install [type]       # Install brew packages: essentials | casks | langs | all (default)
+home install [type]       # Install packages: essentials | casks | langs | tools | all (default)
 home install --work       # Also runs `work install` from $WORK_DIR (defaults to ~/Code/hiradp/work)
 home link [folders...]    # Stow configs into $HOME (default: all in $DEFAULT_FOLDERS)
 home upgrade              # git pull --ff-only, brew update/upgrade, nvim Lazy! sync
@@ -35,6 +35,8 @@ A few configs target `$HOME` directly rather than `~/.config` — check the dire
 ### Package lists
 
 `pkg/brew/{taps,essentials,cask}` are plain newline-separated text files; `#` comments and blank lines are skipped. `pkg/lang/*` are shell snippets (one per runtime: bun, go, python, ruby, rust, zig) that get **sourced** (not executed) from `_install_langs`, so they share the parent shell's environment and `log_*` helpers.
+
+`pkg/tool/*` follow the same pattern for standalone tools installed outside Homebrew (e.g. cursor CLI). Sourced from `_install_tools`.
 
 ### Logging convention
 

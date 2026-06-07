@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v agent &>/dev/null; then
+  log_info "Upgrading Cursor CLI..."
+else
+  log_info "Installing Cursor CLI..."
+fi
+
+curl https://cursor.com/install -fsS | bash
+
+log_ok "Cursor CLI $(agent --version 2>/dev/null || echo installed)"
