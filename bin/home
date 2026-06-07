@@ -26,22 +26,7 @@ cmd_link() {
 }
 
 cmd_install() {
-  local with_work=false
-  local positional=()
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-    --work)
-      with_work=true
-      shift
-      ;;
-    *)
-      positional+=("$1")
-      shift
-      ;;
-    esac
-  done
-
-  local type="${positional[0]:-all}"
+  local type="${1:-all}"
 
   case "$type" in
   essentials)
@@ -71,7 +56,7 @@ cmd_install() {
     ;;
   esac
 
-  if [[ "$with_work" == true ]]; then
+  if _has_work; then
     log_section "Installing work"
     _run_work install
   fi
@@ -101,17 +86,6 @@ cmd_setup() {
 }
 
 cmd_upgrade() {
-  local with_work=false
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-    --work)
-      with_work=true
-      shift
-      ;;
-    *) shift ;;
-    esac
-  done
-
   log_banner "Home Upgrade"
 
   log_section "Pulling latest"
@@ -127,7 +101,7 @@ cmd_upgrade() {
   nvim --headless "+Lazy! sync" +qa
   log_ok "Neovim plugins upgraded"
 
-  if [[ "$with_work" == true ]]; then
+  if _has_work; then
     log_section "Upgrading work"
     _run_work upgrade
   fi
@@ -180,23 +154,18 @@ Commands:
   connect               Connect to ZeroTier network (ID from iCloud)
   help                  Show this help message
 
-Flags:
-  --work                Also run the matching work command (install or upgrade only)
-
 Environment:
   DOTFILES              Path to dotfiles repo (default: ~/Code/hiradp/home)
   WORK_DIR              Path to work repo (default: ~/Code/hiradp/work)
 
 Examples:
   home setup                First-time machine setup
-  home install              Install all packages
-  home install --work       Install all packages, then run 'work install'
+  home install              Install all packages (and work, if present)
   home install essentials   Install only CLI tools
   home install casks        Install only GUI apps
   home install langs        Install language runtimes (bun, go, python, ruby, rust, zig)
   home install tools        Install standalone tools (cursor)
   home upgrade              Upgrade brew + nvim plugins, commit + push changes
-  home upgrade --work       Upgrade home, then run 'work upgrade'
   home link                 Link all config folders
   home link nvim fish       Link only nvim and fish configs
 EOF
@@ -330,13 +299,16 @@ _install_tools() {
   done
 }
 
+_work_bin() {
+  echo "${WORK_DIR:-$HOME/Code/hiradp/work}/bin/work"
+}
+
+_has_work() {
+  [[ -x "$(_work_bin)" ]]
+}
+
 _run_work() {
-  local work="${WORK_DIR:-$HOME/Code/hiradp/work}/bin/work"
-  if [[ ! -x "$work" ]]; then
-    log_error "work CLI not found at $work"
-    return 1
-  fi
-  "$work" "$@"
+  "$(_work_bin)" "$@"
 }
 
 # ------------------------------------------------------------------------------

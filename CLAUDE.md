@@ -10,11 +10,9 @@ Personal dotfiles, managed by the `home` CLI in `bin/home`. There is no build, n
 
 ```bash
 home setup                # First-time machine setup (brew + ssh + remotes + install + link)
-home install [type]       # Install packages: essentials | casks | langs | tools | all (default)
-home install --work       # Also runs `work install` from $WORK_DIR (defaults to ~/Code/hiradp/work)
+home install [type]       # Install packages: essentials | casks | langs | tools | all (default); runs `work install` when $WORK_DIR exists
 home link [folders...]    # Stow configs into $HOME (default: all in $DEFAULT_FOLDERS)
-home upgrade              # git pull --ff-only, brew update/upgrade, nvim Lazy! sync
-home upgrade --work       # Plus `work upgrade`
+home upgrade              # git pull --ff-only, brew update/upgrade, nvim Lazy! sync; runs `work upgrade` when $WORK_DIR exists
 home connect              # Join ZeroTier network using ID stored in iCloud
 ```
 
