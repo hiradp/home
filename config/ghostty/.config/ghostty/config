@@ -1,6 +1,6 @@
 # Hirad's Ghostty Configuration
 title = "👻"
-command = "/opt/homebrew/bin/fish -c 'tmux attach || tmux'"
+command = "/opt/homebrew/bin/fish"
 confirm-close-surface = false
 shell-integration = fish
 
