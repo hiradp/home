@@ -30,6 +30,32 @@ Configs live under `config/<tool>/.config/<tool>/...` so that `stow -d config <t
 
 A few configs target `$HOME` directly rather than `~/.config` — check the directory layout under `config/<tool>/` before assuming.
 
+### Claude config (named per-identity dirs)
+
+Two **identities** live in two real config dirs, each holding its own login + history; only their settings are tracked (runtime stays out of the repo):
+
+- `config/claude-work/.claude-work/` → `~/.claude-work` — work identity (also tracks the `create-pr` skill).
+- `config/claude-personal/.claude-personal/` → `~/.claude-personal` — personal identity.
+
+`~/.claude` is a **symlink to whichever identity is this machine's default** (here `~/.claude-work`). The default profile is selected at setup, not hardcoded.
+
+**Why the default stays "unset" (important):** on macOS the login is stored in the Keychain, keyed per config dir — an explicit `CLAUDE_CONFIG_DIR` gets a *suffixed* Keychain item, while the unset default gets the plain `Claude Code-credentials`. So the default profile must run with `CLAUDE_CONFIG_DIR` **unset** (just `~/.claude` → its dir, plus the home-level `~/.claude.json`); giving it an explicit dir would point at a different Keychain item and force a re-login. Only the *non-default* profile gets an explicit `CLAUDE_CONFIG_DIR`.
+
+**The wrapper lives here** (`config/fish/.config/fish/functions/claude.fish`), not in the work repo. It derives the **default profile from the `~/.claude` symlink target** (so it can't go stale between shell restarts), and reads the per-repo override lists from machine policy (set in the work repo's `config/fish/config.fish`; absent on a personal-only machine → personal default, no overrides):
+
+```fish
+set -g claude_personal_dirs   <dirs>        # repos that force the personal profile
+set -g claude_work_dirs       <dirs>        # repos that force the work profile (used when default=personal)
+# optional: set -g claude_default_profile work|personal  to override the ~/.claude-derived default
+```
+
+To make a machine personal-default: point `~/.claude` → `~/.claude-personal` and list work repos in `claude_work_dirs`. (The override lists are read at shell startup, so a new shell is needed after changing them.)
+
+To avoid copy-paste:
+
+- **Settings** are one shared file, `lib/claude/settings.json`. Each package's `settings.json` is a committed symlink to it; edit the base and both identities get it. (Each dir's `.gitignore` tracks only `settings.json`/`skills` + `.gitignore`; sessions, projects, creds stay ignored.)
+- **Statusline** is one shared script, `lib/claude/statusline.sh` (referenced by absolute path from the base `settings.json`). It's profile-agnostic: the tag (`🪐 PlanetScale` / `👤 personal`) comes from `$CLAUDE_STATUS_TAG` / `$CLAUDE_STATUS_TAG_COLOR`, which the wrapper exports. No env var → no tag (so the unset default on a fresh/personal-only machine never mislabels).
+
 ### Package lists
 
 `pkg/brew/{taps,essentials,cask}` are plain newline-separated text files; `#` comments and blank lines are skipped. `pkg/lang/*` are shell snippets (one per runtime: bun, go, python, ruby, rust, zig) that get **sourced** (not executed) from `_install_langs`, so they share the parent shell's environment and `log_*` helpers.
