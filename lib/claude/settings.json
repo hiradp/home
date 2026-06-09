@@ -8,7 +8,7 @@
   "model": "opus[1m]",
   "statusLine": {
     "type": "command",
-    "command": "~/.claude/statusline.sh"
+    "command": "~/Code/hiradp/home/lib/claude/statusline.sh"
   },
   "effortLevel": "xhigh",
   "voice": {
@@ -17,5 +17,8 @@
   },
   "theme": "auto",
   "skipAutoPermissionPrompt": true,
-  "voiceEnabled": true
+  "voiceEnabled": true,
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true
+  }
 }
