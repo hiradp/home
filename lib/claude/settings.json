@@ -5,7 +5,7 @@
   "permissions": {
     "defaultMode": "auto"
   },
-  "model": "opus[1m]",
+  "model": "claude-fable-5",
   "statusLine": {
     "type": "command",
     "command": "~/Code/hiradp/home/lib/claude/statusline.sh"
