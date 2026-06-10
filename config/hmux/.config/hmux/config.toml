@@ -96,7 +96,7 @@ prefix = "ctrl+a"
 # agents = ""     # e.g. "alt" makes alt+1..9 focus agent rows directly
 
 # [worktrees]
-# directory = "~/.hmux/worktrees"
+# directory = "~/Code/worktrees"
 
 [ui]
 # Sidebar width (auto-scaled based on workspace names, this sets the default)
