@@ -33,8 +33,6 @@ sep="${dim} | ${reset}"
 cwd=$(echo "$input" | jq -r '.cwd // empty')
 workspace_current=$(echo "$input" | jq -r '.workspace.current_dir // empty')
 workspace_project=$(echo "$input" | jq -r '.workspace.project_dir // empty')
-session_id=$(echo "$input" | jq -r '.session_id // empty')
-session_name=$(echo "$input" | jq -r '.session_name // empty')
 model_name=$(echo "$input" | jq -r '.model.display_name // "Claude"')
 effort_level=$(echo "$input" | jq -r '.effort.level // empty')
 
@@ -99,13 +97,6 @@ if [ -n "$cwd" ]; then
     display_dir="${cwd##*/}"
   fi
   folder_part="${display_dir}"
-
-  # Session name: render only when non-empty AND not a raw UUID (defensive guard)
-  # UUID pattern: 8-4-4-4-12 hex chars
-  uuid_pattern='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
-  if [ -n "$session_name" ] && [ "$session_name" != "$session_id" ] && ! echo "$session_name" | grep -qE "$uuid_pattern"; then
-    folder_part+="${dim}:${session_name}${reset}"
-  fi
 
   git_branch=$(git -C "${cwd}" --no-optional-locks rev-parse --abbrev-ref HEAD 2>/dev/null)
   if [ -n "$git_branch" ]; then
