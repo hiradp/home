@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# tmux-control — create-or-attach the htools control session.
+#
+# A single home-base session named "ctrl", bound to `prefix + !` in tmux.conf
+# (the "ctrl" name keys its cyan accent in the @theme map). Its windows:
+#
+#   main    a 2x2 grid — the htask task dashboard (top-left) and the hmux
+#           session dashboard (top-right) over two plain shells (bottom) to
+#           drive everything from. The dashboards are typed into shells (not
+#           exec'd), so quitting one just leaves a shell.
+#   htools  a plain shell in ~/code/hiradp/htools
+#   home    a plain shell in ~/code/hiradp/home
+#   work    a plain shell in ~/code/hiradp/work
+#
+# (Open your own editor in those — they're just shells rooted at the repo.)
+# Repo windows are skipped when their clone is absent (this is multi-machine
+# dotfiles — the work repo isn't on every box).
+#
+# Create-or-attach: re-running just re-enters the existing session rather than
+# rebuilding it — the same idempotent "open or resume" model as `hmux open`.
+
+set -euo pipefail
+
+session="ctrl"
+repos="$HOME/code/hiradp"
+
+# Lock a window's name so the program running in it can't rename it (the global
+# automatic-rename is on), then set it. Targeting a pane id resolves to its
+# window. Mirrors hmux's keep_window_name.
+name_window() {
+  tmux set-window-option -t "$1" automatic-rename off
+  tmux rename-window -t "$1" "$2"
+}
+
+if ! tmux has-session -t "=$session" 2>/dev/null; then
+  # Window 1 "main", a 2x2 grid:
+  #   task dashboard | session dashboard
+  #   shell          | shell
+  # Pane ids (`%N`) are captured and targeted directly — exact-match `=name`
+  # doesn't work for pane targets, and ids sidestep the user's base-index. Each
+  # capture is guarded: if tmux ever returns no id, bail rather than risk a
+  # later split/send landing on the current (wrong) pane.
+  created=$(tmux new-session -ds "$session" -c "$HOME" -P -F '#{session_id} #{pane_id}') || exit 1
+  session_id=${created%% *}
+  task_pane=${created##* }
+  [ -n "$session_id" ] && [ -n "$task_pane" ] || exit 1
+  mux_pane=$(tmux split-window -h -t "$task_pane" -l 50% -c "$HOME" -P -F '#{pane_id}') || exit 1
+  drive_pane=$(tmux split-window -v -t "$task_pane" -l 50% -c "$repos" -P -F '#{pane_id}') || exit 1
+  tmux split-window -v -t "$mux_pane" -l 50% -c "$repos" # bottom-right shell
+  name_window "$task_pane" "main"
+  # Dashboards in the top two panes; the bottom two stay plain shells.
+  tmux send-keys -t "$task_pane" "htask" C-m
+  tmux send-keys -t "$mux_pane" "hmux" C-m
+
+  # A plain shell per core repo, rooted at its clone — open your own editor.
+  for repo in htools home work; do
+    dir="$repos/$repo"
+    [ -d "$dir" ] || continue
+    pane=$(tmux new-window -dt "$session_id" -c "$dir" -P -F '#{pane_id}') || exit 1
+    name_window "$pane" "$repo"
+  done
+
+  # Land in a bottom shell on the main window — the driving surface.
+  tmux select-window -t "$task_pane"
+  tmux select-pane -t "$drive_pane"
+fi
+
+# Enter it: switch when called from inside tmux (e.g. the keybinding), attach
+# when run from a bare shell.
+if [[ -n "${TMUX:-}" ]]; then
+  tmux switch-client -t "=$session"
+else
+  tmux attach-session -t "=$session"
+fi

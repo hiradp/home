@@ -76,7 +76,15 @@ All scripts (except `bootstrap`, which inlines its own copy because it runs befo
 
 ### tmux-theme
 
-`bin/tmux-theme` matches tmux to macOS appearance. `--watch` mode uses `dark-notify` and PID-files itself in `$TMPDIR`; running it again kills the previous watcher.
+`bin/tmux-theme` matches tmux to macOS appearance. `--watch` mode uses `dark-notify` and PID-files itself in `$TMPDIR`; running it again kills the previous watcher. The theme files (`themes/{light,dark}.conf`) set only the light/dark *surface* (`@bg`/`@fg`/`status-bg`/`pane-border-style`) — the per-session *accent* is theme-independent and lives in `.tmux.conf` (see below).
+
+### tmux-control (htools home base)
+
+`bin/tmux-control` create-or-attaches the **`ctrl`** session — the htools control point, bound to `prefix + !`. It boots into the `htask` dashboard (typed into a fresh shell, not exec'd, so quitting `htask` drops to a shell for `htask`/`htree`/`hmux`). Re-running re-enters the session rather than rebuilding it, mirroring `hmux open`'s idempotency. The `ctrl` name is what keys its cyan accent in the `@theme` map.
+
+### Per-session accent colours (`@theme`)
+
+`@theme` in `.tmux.conf` maps the **session name** to a status-bar accent, re-evaluated per session via `#{E:@theme}`: `hprobe-*` → red (incident), `htask-*` → magenta (active task), `ctrl` → cyan, plus the originals `planetscale` → red, `hiradp` → green, everything else → blue. The `htask-*` / `hprobe-*` prefixes match the tmux sessions [htools](https://github.com/hiradp/htools) opens (`htask start`, `hprobe`), so a dev task, an incident probe, and the control session are colour-coded apart at a glance.
 
 ## Commit style
 
