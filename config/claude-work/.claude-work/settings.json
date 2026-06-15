@@ -1,23 +1,102 @@
 {
+  "effortLevel": "xhigh",
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true
+  },
   "env": {
     "CLAUDE_CODE_NO_FLICKER": "1"
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "command": "hagent hook",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "hagent hook",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "hagent hook",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "command": "hagent hook",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "hagent hook",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "hagent hook",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "hagent hook",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ]
   },
   "permissions": {
     "defaultMode": "auto"
   },
+  "skipAutoPermissionPrompt": true,
   "statusLine": {
-    "type": "command",
-    "command": "~/Code/hiradp/home/lib/claude/statusline.sh"
+    "command": "~/Code/hiradp/home/lib/claude/statusline.sh",
+    "type": "command"
   },
-  "enabledPlugins": {
-    "rust-analyzer-lsp@claude-plugins-official": true
-  },
-  "effortLevel": "xhigh",
+  "theme": "auto",
   "voice": {
     "enabled": true,
     "mode": "hold"
   },
-  "theme": "auto",
-  "skipAutoPermissionPrompt": true,
   "voiceEnabled": true
 }
