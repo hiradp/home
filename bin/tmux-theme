@@ -30,19 +30,26 @@ detect() {
 }
 
 watch() {
+  # Singleton: if a watcher is already live, do nothing. (The old path killed it
+  # and started fresh — but killing the bash orphaned its dark-notify pipe-child,
+  # so one leaked on every tmux server start.)
   if [[ -f "$pidfile" ]]; then
     local prev
     prev="$(cat "$pidfile" 2>/dev/null || true)"
     if [[ -n "$prev" ]] && kill -0 "$prev" 2>/dev/null; then
-      kill "$prev" 2>/dev/null || true
+      exit 0
     fi
   fi
   echo "$$" >"$pidfile"
-  trap 'rm -f "$pidfile"' EXIT
-
+  # Run the watch pipeline in the background and `wait`: a foreground pipe would
+  # defer signals until it returns (it never does), leaving us unkillable. On the
+  # way out, drop the pidfile and take dark-notify (a direct child) down too.
+  trap 'exit 0' INT TERM
+  trap 'rm -f "$pidfile"; pkill -P $$ 2>/dev/null || true' EXIT
   dark-notify | while read -r mode; do
     apply "$mode"
-  done
+  done &
+  wait
 }
 
 case "${1:-}" in
