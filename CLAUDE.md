@@ -78,9 +78,9 @@ All scripts (except `bootstrap`, which inlines its own copy because it runs befo
 
 `bin/tmux-theme` matches tmux to macOS appearance. `--watch` mode uses `dark-notify` and PID-files itself in `$TMPDIR`; running it again kills the previous watcher. The theme files (`themes/{light,dark}.conf`) set only the light/dark *surface* (`@bg`/`@fg`/`status-bg`/`pane-border-style`) — the per-session *accent* is theme-independent and lives in `.tmux.conf` (see below).
 
-### tmux-control (htools home base)
+### `hmux ctrl` (htools home base)
 
-`bin/tmux-control` create-or-attaches the **`ctrl`** session — the htools control point, bound to `prefix + !`. It boots into the `htask` dashboard (typed into a fresh shell, not exec'd, so quitting `htask` drops to a shell for `htask`/`htree`/`hmux`). Re-running re-enters the session rather than rebuilding it, mirroring `hmux open`'s idempotency. The `ctrl` name is what keys its cyan accent in the `@theme` map.
+The **`ctrl`** session — the htools control center, bound to `prefix + !` — is created-or-attached by **`hmux ctrl`** (in the [htools](https://github.com/hiradp/htools) repo), which replaced the old `bin/tmux-control` script. It's a 2x3 grid in one `main` window: the `htask` dashboard, a clock, and the `hmux` dashboard across the top; a process/port pane, a plain driver shell (focused on entry), and an agents pane across the bottom. The clock/ports/agents panes run configurable commands (`[hmux]` `clock`/`ports`/`agents`, placeholders until `hclock`/`hps`/`hagent` ship). Beside `main` it opens a plain shell window per `[hmux] ctrl_repos` entry in `~/.config/htools/config.toml` (set to the core repos — absent ones are skipped). Re-running re-enters rather than rebuilding, mirroring `hmux open`. The `ctrl` name keys its cyan accent in the `@theme` map.
 
 ### Per-session accent colours (`@theme`)
 
