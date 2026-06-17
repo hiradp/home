@@ -23,15 +23,18 @@ function claude --wraps=claude --description 'claude: pick config dir + statusli
     set -l work_tag     '🪐 PlanetScale'; set -l work_color     '\033[1;38;2;90;160;255m'
     set -l personal_tag '👤 personal';    set -l personal_color '\033[1;38;2;200;120;255m'
 
-    # Start from the machine default, then let per-repo overrides win.
+    # Start from the machine default, then let per-repo overrides win. Match
+    # case-insensitively: macOS's default APFS is case-insensitive, so $PWD can
+    # arrive in any casing (~/code vs ~/Code) and a case-sensitive compare would
+    # silently miss the override and fall back to the machine default.
     set -l profile $default_profile
     for dir in $claude_personal_dirs
-        if string match -q -- "$dir" "$PWD"; or string match -q -- "$dir/*" "$PWD"
+        if string match -qi -- "$dir" "$PWD"; or string match -qi -- "$dir/*" "$PWD"
             set profile personal; break
         end
     end
     for dir in $claude_work_dirs
-        if string match -q -- "$dir" "$PWD"; or string match -q -- "$dir/*" "$PWD"
+        if string match -qi -- "$dir" "$PWD"; or string match -qi -- "$dir/*" "$PWD"
             set profile work; break
         end
     end
