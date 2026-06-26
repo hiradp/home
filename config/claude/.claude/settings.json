@@ -5,21 +5,6 @@
   "permissions": {
     "defaultMode": "auto"
   },
-  "statusLine": {
-    "type": "command",
-    "command": "~/Code/hiradp/home/lib/claude/statusline.sh"
-  },
-  "enabledPlugins": {
-    "rust-analyzer-lsp@claude-plugins-official": true
-  },
-  "effortLevel": "xhigh",
-  "voice": {
-    "enabled": true,
-    "mode": "hold"
-  },
-  "theme": "auto",
-  "skipAutoPermissionPrompt": true,
-  "voiceEnabled": true,
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -98,5 +83,20 @@
         ]
       }
     ]
-  }
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/Code/hiradp/home/lib/claude/statusline.sh"
+  },
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true
+  },
+  "effortLevel": "xhigh",
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
+  "theme": "auto",
+  "skipAutoPermissionPrompt": true,
+  "voiceEnabled": true
 }

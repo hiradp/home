@@ -1,21 +1,14 @@
 #!/bin/bash
-# Shared Claude Code statusline core, used by every config dir (~/.claude,
-# ~/.claude-personal, ...). The active profile tag is supplied by the `claude`
-# shell wrapper via $CLAUDE_STATUS_TAG / $CLAUDE_STATUS_TAG_COLOR; this script is
-# profile-agnostic so the same copy serves work and personal.
+# Claude Code statusline core for the single ~/.claude config.
 #
-# Layout: folder@branch (git status) | [tag] | model | [progress bar with label]
+# Layout: folder@branch (git status) | model | [progress bar with label]
 
 set -f # disable globbing
 
 input=$(cat)
 
 if [ -z "$input" ]; then
-  if [ -n "${CLAUDE_STATUS_TAG:-}" ]; then
-    printf "Claude · %s" "$CLAUDE_STATUS_TAG"
-  else
-    printf "Claude"
-  fi
+  printf "Claude"
   exit 0
 fi
 
@@ -124,12 +117,6 @@ fi
 
 # ===== Assemble =====
 out=""
-# Profile tag (e.g. "🪐 PlanetScale", "👤 personal"): set by the `claude` shell
-# wrapper via $CLAUDE_STATUS_TAG. Empty in any context the wrapper didn't tag.
-if [ -n "${CLAUDE_STATUS_TAG:-}" ]; then
-  tag_color="${CLAUDE_STATUS_TAG_COLOR:-\033[1;38;2;200;120;255m}"
-  out+="${tag_color}${CLAUDE_STATUS_TAG}${reset}${sep}"
-fi
 [ -n "$folder_part" ] && out+="${folder_part}${sep}"
 model_part="${model_name}"
 if [ -n "$effort_level" ]; then

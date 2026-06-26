@@ -30,31 +30,17 @@ Configs live under `config/<tool>/.config/<tool>/...` so that `stow -d config <t
 
 A few configs target `$HOME` directly rather than `~/.config` — check the directory layout under `config/<tool>/` before assuming.
 
-### Claude config (named per-identity dirs)
+### Claude config (single identity)
 
-Two **identities** live in two real config dirs, each holding its own login + history; only their settings are tracked (runtime stays out of the repo):
+One Claude config, tracked as `config/claude/.claude/` → `~/.claude`. Only the tracked bits are committed — `settings.json`, the `create-pr` skill under `skills/`, and the `.gitignore` that pins them; login, sessions, projects, and creds are runtime and stay out of the repo.
 
-- `config/claude-work/.claude-work/` → `~/.claude-work` — work identity (also tracks the `create-pr` skill).
-- `config/claude-personal/.claude-personal/` → `~/.claude-personal` — personal identity.
+Cross-repo skills (the `htools-*` ones) live as **absolute symlinks** directly in `~/.claude/skills/`, *not* tracked here: GNU stow aborts on absolute symlinks inside a package, so they're maintained outside `home link` (created alongside their source repos). `home link` folds `create-pr` in next to them without touching them.
 
-`~/.claude` is a **symlink to whichever identity is this machine's default** (here `~/.claude-work`). The default profile is selected at setup, not hardcoded.
+**Why `CLAUDE_CONFIG_DIR` stays unset (important):** on macOS the login is stored in the Keychain, keyed per config dir — the unset default gets the plain `Claude Code-credentials` item, while an explicit `CLAUDE_CONFIG_DIR` gets a *suffixed* one. So `claude` must run with `CLAUDE_CONFIG_DIR` **unset** (it resolves `~/.claude` plus the home-level `~/.claude.json`); pointing it at an explicit dir would hit a different Keychain item and force a re-login. The wrapper leaves it alone on purpose.
 
-**Why the default stays "unset" (important):** on macOS the login is stored in the Keychain, keyed per config dir — an explicit `CLAUDE_CONFIG_DIR` gets a *suffixed* Keychain item, while the unset default gets the plain `Claude Code-credentials`. So the default profile must run with `CLAUDE_CONFIG_DIR` **unset** (just `~/.claude` → its dir, plus the home-level `~/.claude.json`); giving it an explicit dir would point at a different Keychain item and force a re-login. Only the *non-default* profile gets an explicit `CLAUDE_CONFIG_DIR`.
+**The wrapper** (`config/fish/.config/fish/functions/claude.fish`) now only forces `--effort=max` on every invocation — no profile switching, no statusline tag.
 
-**The wrapper lives here** (`config/fish/.config/fish/functions/claude.fish`), not in the work repo. It derives the **default profile from the `~/.claude` symlink target** (so it can't go stale between shell restarts), and reads the per-repo override lists from machine policy (set in the work repo's `config/fish/config.fish`; absent on a personal-only machine → personal default, no overrides):
-
-```fish
-set -g claude_personal_dirs   <dirs>        # repos that force the personal profile
-set -g claude_work_dirs       <dirs>        # repos that force the work profile (used when default=personal)
-# optional: set -g claude_default_profile work|personal  to override the ~/.claude-derived default
-```
-
-To make a machine personal-default: point `~/.claude` → `~/.claude-personal` and list work repos in `claude_work_dirs`. (The override lists are read at shell startup, so a new shell is needed after changing them.)
-
-To avoid copy-paste:
-
-- **Settings** are one shared file, `lib/claude/settings.json`. Each package's `settings.json` is a committed symlink to it; edit the base and both identities get it. (Each dir's `.gitignore` tracks only `settings.json`/`skills` + `.gitignore`; sessions, projects, creds stay ignored.)
-- **Statusline** is one shared script, `lib/claude/statusline.sh` (referenced by absolute path from the base `settings.json`). It's profile-agnostic: the tag (`🪐 PlanetScale` / `👤 personal`) comes from `$CLAUDE_STATUS_TAG` / `$CLAUDE_STATUS_TAG_COLOR`, which the wrapper exports. No env var → no tag (so the unset default on a fresh/personal-only machine never mislabels).
+**Statusline** is `lib/claude/statusline.sh`, referenced by absolute path from `settings.json` (it no longer renders a profile tag).
 
 ### Package lists
 
