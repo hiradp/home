@@ -96,8 +96,9 @@
     "enabled": true,
     "mode": "hold"
   },
+  "skipWorkflowUsageWarning": true,
   "theme": "auto",
   "skipAutoPermissionPrompt": true,
   "voiceEnabled": true,
-  "skipWorkflowUsageWarning": true
+  "model": "claude-fable-5[1m]"
 }
