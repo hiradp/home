@@ -5,6 +5,7 @@
   "permissions": {
     "defaultMode": "auto"
   },
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -99,6 +100,5 @@
   "skipWorkflowUsageWarning": true,
   "theme": "auto",
   "skipAutoPermissionPrompt": true,
-  "voiceEnabled": true,
-  "model": "claude-fable-5[1m]"
+  "voiceEnabled": true
 }
