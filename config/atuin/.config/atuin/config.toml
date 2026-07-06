@@ -28,3 +28,6 @@ common_subcommands = [
   "tmux",
   "yarn",
 ]
+
+[ai]
+enabled = false
