@@ -1,114 +1,114 @@
 {
-  "effortLevel": "xhigh",
-  "enabledPlugins": {
-    "rust-analyzer-lsp@claude-plugins-official": true
-  },
   "env": {
     "CLAUDE_CODE_NO_FLICKER": "1"
   },
+  "permissions": {
+    "defaultMode": "auto"
+  },
+  "model": "opus[1m]",
   "hooks": {
     "Notification": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "hagent hook",
-            "type": "command"
+            "type": "command",
+            "command": "hagent hook"
           }
-        ],
-        "matcher": ""
+        ]
       }
     ],
     "PostToolUse": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "hagent hook",
-            "type": "command"
+            "type": "command",
+            "command": "hagent hook"
           }
-        ],
-        "matcher": ""
+        ]
       }
     ],
     "PreToolUse": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "hagent hook",
-            "type": "command"
+            "type": "command",
+            "command": "hagent hook"
           }
-        ],
-        "matcher": ""
+        ]
       }
     ],
     "SessionEnd": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "hagent hook",
-            "type": "command"
+            "type": "command",
+            "command": "hagent hook"
           }
-        ],
-        "matcher": ""
+        ]
       }
     ],
     "SessionStart": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "hagent hook",
-            "type": "command"
+            "type": "command",
+            "command": "hagent hook"
           }
-        ],
-        "matcher": ""
+        ]
       },
       {
+        "matcher": "*",
         "hooks": [
           {
+            "type": "command",
             "command": "bash '/Users/hirad/.claude/hooks/herdr-agent-state.sh' session",
-            "timeout": 10,
-            "type": "command"
+            "timeout": 10
           }
-        ],
-        "matcher": "*"
+        ]
       }
     ],
     "Stop": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "hagent hook",
-            "type": "command"
+            "type": "command",
+            "command": "hagent hook"
           }
-        ],
-        "matcher": ""
+        ]
       }
     ],
     "UserPromptSubmit": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "hagent hook",
-            "type": "command"
+            "type": "command",
+            "command": "hagent hook"
           }
-        ],
-        "matcher": ""
+        ]
       }
     ]
   },
-  "model": "claude-fable-5[1m]",
-  "permissions": {
-    "defaultMode": "auto"
-  },
-  "skipAutoPermissionPrompt": true,
-  "skipWorkflowUsageWarning": true,
   "statusLine": {
-    "command": "~/Code/hiradp/home/lib/claude/statusline.sh",
-    "type": "command"
+    "type": "command",
+    "command": "~/Code/hiradp/home/lib/claude/statusline.sh"
   },
-  "theme": "auto",
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true
+  },
+  "effortLevel": "xhigh",
   "voice": {
     "enabled": true,
     "mode": "hold"
   },
+  "skipWorkflowUsageWarning": true,
+  "theme": "auto",
+  "skipAutoPermissionPrompt": true,
   "voiceEnabled": true
 }
