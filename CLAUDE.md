@@ -30,17 +30,19 @@ Configs live under `config/<tool>/.config/<tool>/...` so that `stow -d config <t
 
 A few configs target `$HOME` directly rather than `~/.config` — check the directory layout under `config/<tool>/` before assuming.
 
-### Claude config (single identity)
+### Claude config (two identities)
 
-One Claude config, tracked as `config/claude/.claude/` → `~/.claude`. Only the tracked bits are committed — `settings.json`, the `create-pr` skill under `skills/`, and the `.gitignore` that pins them; login, sessions, projects, and creds are runtime and stay out of the repo.
+The **default** identity is tracked as `config/claude/.claude/` → `~/.claude`. Only the tracked bits are committed — `settings.json`, the `create-pr` skill under `skills/`, and the `.gitignore` that pins them; login, sessions, projects, and creds are runtime and stay out of the repo. A **second** identity lives in `~/.claude-ps`, reached via the `claude-ps` wrapper. Its login, sessions and history are separate, but its `settings.json` is symlinked to the default's tracked file — so **settings and statusline are identical across both**. See below.
 
 Cross-repo skills (the `htools-*` ones) live as **absolute symlinks** directly in `~/.claude/skills/`, *not* tracked here: GNU stow aborts on absolute symlinks inside a package, so they're maintained outside `home link` (created alongside their source repos). `home link` folds `create-pr` in next to them without touching them.
 
-**Why `CLAUDE_CONFIG_DIR` stays unset (important):** on macOS the login is stored in the Keychain, keyed per config dir — the unset default gets the plain `Claude Code-credentials` item, while an explicit `CLAUDE_CONFIG_DIR` gets a *suffixed* one. So `claude` must run with `CLAUDE_CONFIG_DIR` **unset** (it resolves `~/.claude` plus the home-level `~/.claude.json`); pointing it at an explicit dir would hit a different Keychain item and force a re-login. The wrapper leaves it alone on purpose.
+**Why the default leaves `CLAUDE_CONFIG_DIR` unset (important):** on macOS the login is stored in the Keychain, keyed per config dir — the unset default gets the plain `Claude Code-credentials` item, while an explicit `CLAUDE_CONFIG_DIR` gets a *suffixed* one. So the default `claude` must run with `CLAUDE_CONFIG_DIR` **unset** (it resolves `~/.claude` plus the home-level `~/.claude.json`); pointing it at an explicit dir would hit a different Keychain item and force a re-login. `claude.fish` leaves it alone on purpose.
 
-**The wrapper** (`config/fish/.config/fish/functions/claude.fish`) now only forces `--effort=max` on every invocation — no profile switching, no statusline tag.
+**The two wrappers** live in `config/fish/.config/fish/functions/`:
+- `claude.fish` — the default identity. Leaves `CLAUDE_CONFIG_DIR` unset (see above) and only forces `--effort=max`.
+- `claude-ps.fish` — a second identity. Sets `CLAUDE_CONFIG_DIR=~/.claude-ps` (function-scoped, so it never leaks into the shell) and also forces `--effort=max`. The explicit dir gives it its own *suffixed* Keychain login, separate from the default — that separation is the entire point. `home link` symlinks `~/.claude-ps/settings.json` → the tracked `settings.json`, so settings + statusline stay identical to the default; only login, sessions and history diverge. Claude prompts a one-time login on the first `claude-ps` run.
 
-**Statusline** is `lib/claude/statusline.sh`, referenced by absolute path from `settings.json` (it no longer renders a profile tag).
+**Statusline** is `lib/claude/statusline.sh`, referenced by absolute path from the shared `settings.json`. Since both identities run the same script, it self-detects the identity from `$CLAUDE_CONFIG_DIR` and prints a trailing chip — `max` (purple) for the default, `enterprise` (blue) for `claude-ps` — so the active identity is always visible.
 
 ### Package lists
 

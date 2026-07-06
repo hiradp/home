@@ -1,7 +1,8 @@
 #!/bin/bash
-# Claude Code statusline core for the single ~/.claude config.
+# Claude Code statusline, shared by both identities — the default ~/.claude and
+# the `claude-ps` ~/.claude-ps — which it self-detects via $CLAUDE_CONFIG_DIR.
 #
-# Layout: folder@branch (git status) | model | [progress bar with label]
+# Layout: folder@branch (git status) | model · effort | [bar] | rate-limits | identity
 
 set -f # disable globbing
 
@@ -21,6 +22,22 @@ git_del_color='\033[38;2;200;60;60m'
 git_branch_color='\033[38;2;100;160;200m'
 
 sep="${dim} | ${reset}"
+
+# ===== Identity chip =====
+# Two Claude identities share this one statusline: the default `claude` runs with
+# CLAUDE_CONFIG_DIR unset, `claude-ps` exports CLAUDE_CONFIG_DIR=~/.claude-ps. The
+# CLI passes its environment to this command, so the config dir tells them apart.
+case "${CLAUDE_CONFIG_DIR:-}" in
+  */.claude-ps)
+    id_label="enterprise"
+    id_color='\033[1;38;2;90;160;255m'   # blue — enterprise (PlanetScale / work)
+    ;;
+  *)
+    id_label="max"
+    id_color='\033[1;38;2;200;120;255m'  # purple — max (default / personal)
+    ;;
+esac
+id_part="${id_color}${id_label}${reset}"
 
 # ===== Extract data =====
 cwd=$(echo "$input" | jq -r '.cwd // empty')
@@ -172,6 +189,9 @@ if [ -n "$rl_week" ]; then
   rl_week_color=$(_rl_color "$rl_week_int")
   out+="${dim} · ${reset}wk ${rl_week_color}${rl_week_int}%${reset}"
 fi
+
+# Identity chip, trailing — always last so it's easy to spot.
+out+="${sep}${id_part}"
 
 printf "%b" "$out"
 exit 0
