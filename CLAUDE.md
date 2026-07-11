@@ -34,8 +34,6 @@ A few configs target `$HOME` directly rather than `~/.config` — check the dire
 
 The **default** identity is tracked as `config/claude/.claude/` → `~/.claude`. Only the tracked bits are committed — `settings.json`, the `create-pr` skill under `skills/`, and the `.gitignore` that pins them; login, sessions, projects, and creds are runtime and stay out of the repo. A **second** identity lives in `~/.claude-ps`, reached via the `claude-ps` wrapper. Its login, sessions and history are separate, but its `settings.json` is symlinked to the default's tracked file — so **settings and statusline are identical across both**. See below.
 
-Cross-repo skills (the `htools-*` ones) live as **absolute symlinks** directly in `~/.claude/skills/`, *not* tracked here: GNU stow aborts on absolute symlinks inside a package, so they're maintained outside `home link` (created alongside their source repos). `home link` folds `create-pr` in next to them without touching them.
-
 **Why the default leaves `CLAUDE_CONFIG_DIR` unset (important):** on macOS the login is stored in the Keychain, keyed per config dir — the unset default gets the plain `Claude Code-credentials` item, while an explicit `CLAUDE_CONFIG_DIR` gets a *suffixed* one. So the default `claude` must run with `CLAUDE_CONFIG_DIR` **unset** (it resolves `~/.claude` plus the home-level `~/.claude.json`); pointing it at an explicit dir would hit a different Keychain item and force a re-login. `claude.fish` leaves it alone on purpose.
 
 **The two wrappers** live in `config/fish/.config/fish/functions/`:
@@ -66,13 +64,9 @@ All scripts (except `bootstrap`, which inlines its own copy because it runs befo
 
 `bin/tmux-theme` matches tmux to macOS appearance. `--watch` mode uses `dark-notify` and PID-files itself in `$TMPDIR`; running it again kills the previous watcher. The theme files (`themes/{light,dark}.conf`) set only the light/dark *surface* (`@bg`/`@fg`/`status-bg`/`pane-border-style`) — the per-session *accent* is theme-independent and lives in `.tmux.conf` (see below).
 
-### `hmux ctrl` (htools home base)
-
-The **`ctrl`** session — the htools control center, bound to `prefix + !` — is created-or-attached by **`hmux ctrl`** (in the [htools](https://github.com/hiradp/htools) repo), which replaced the old `bin/tmux-control` script. It's a 2x3 grid in one `main` window: the `htask` dashboard, a clock, and the `hmux` dashboard across the top; a process/port pane, a plain driver shell (focused on entry), and an agents pane across the bottom. The clock/ports/agents panes run configurable commands (`[hmux]` `clock`/`ports`/`agents`, placeholders until `hclock`/`hps`/`hagent` ship). Beside `main` it opens a plain shell window per `[hmux] ctrl_repos` entry in `~/.config/htools/config.toml` (set to the core repos — absent ones are skipped). Re-running re-enters rather than rebuilding, mirroring `hmux open`. The `ctrl` name keys its cyan accent in the `@theme` map.
-
 ### Per-session accent colours (`@theme`)
 
-`@theme` in `.tmux.conf` maps the **session name** to a status-bar accent, re-evaluated per session via `#{E:@theme}`: `hprobe-*` → red (incident), `htask-*` → magenta (active task), `ctrl` → cyan, plus the originals `planetscale` → red, `hiradp` → green, everything else → blue. The `htask-*` / `hprobe-*` prefixes match the tmux sessions [htools](https://github.com/hiradp/htools) opens (`htask start`, `hprobe`), so a dev task, an incident probe, and the control session are colour-coded apart at a glance.
+`@theme` in `.tmux.conf` maps the **session name** to a status-bar accent, re-evaluated per session via `#{E:@theme}`: `planetscale` → red, `hiradp` → green, and everything else → blue.
 
 ## Commit style
 

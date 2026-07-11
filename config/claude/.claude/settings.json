@@ -7,60 +7,7 @@
   },
   "model": "fable",
   "hooks": {
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "hagent hook"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "hagent hook"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "hagent hook"
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "hagent hook"
-          }
-        ]
-      }
-    ],
     "SessionStart": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "hagent hook"
-          }
-        ]
-      },
       {
         "matcher": "*",
         "hooks": [
@@ -68,28 +15,6 @@
             "type": "command",
             "command": "bash '/Users/hirad/.claude/hooks/herdr-agent-state.sh' session",
             "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "hagent hook"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "hagent hook"
           }
         ]
       }
