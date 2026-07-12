@@ -3,7 +3,7 @@
 set -euo pipefail
 
 DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
-DEFAULT_FOLDERS="atuin claude fish ghostty git herdr nvim starship tmux yazi"
+DEFAULT_FOLDERS="atuin claude codex fish ghostty git herdr nvim starship tmux yazi"
 
 # Source logging library
 source "$DOTFILES/lib/log.sh"
@@ -17,6 +17,10 @@ cmd_link() {
   local stow="/opt/homebrew/bin/stow"
 
   for folder in $folders; do
+    case "$folder" in
+    codex) _prepare_codex_stow ;;
+    esac
+
     log_info "Linking $folder..."
     $stow -d "$DOTFILES/config" -D "$folder" -t "$HOME" 2>/dev/null || true
     $stow -d "$DOTFILES/config" "$folder" -t "$HOME"
@@ -29,8 +33,62 @@ cmd_link() {
   case " $folders " in
     *" claude "*) _link_claude_ps_settings ;;
   esac
+  case " $folders " in
+    *" codex "*) _merge_codex_config ;;
+  esac
 
   log_ok "Linked"
+}
+
+# Stow cannot replace a regular file on the first link. Remove the existing
+# hooks file only when it is JSON-equivalent to the tracked version; otherwise
+# stop so local hook changes cannot be overwritten accidentally.
+_prepare_codex_stow() {
+  local src="$DOTFILES/config/codex/.codex/hooks.json"
+  local dest="$HOME/.codex/hooks.json"
+  local jq="/opt/homebrew/bin/jq"
+
+  if [[ -f "$dest" && ! -L "$dest" ]]; then
+    if [[ ! -x "$jq" ]]; then
+      log_error "jq is required to compare Codex hooks"
+      return 1
+    fi
+
+    if [[ "$("$jq" -cS . "$src")" == "$("$jq" -cS . "$dest")" ]]; then
+      rm "$dest"
+    else
+      log_error "Codex hooks differ from the tracked configuration: $dest"
+      log_info "Reconcile the files before running home link codex"
+      return 1
+    fi
+  fi
+}
+
+# Merge portable settings over Codex's live config while preserving generated
+# project trust, plugin, desktop, marketplace, and hook-trust state.
+_merge_codex_config() {
+  local managed="$DOTFILES/config/codex/.codex/config.managed.toml"
+  local live="$HOME/.codex/config.toml"
+  local yq="/opt/homebrew/bin/yq"
+  local tmp
+
+  if [[ ! -x "$yq" ]]; then
+    log_error "yq is required to merge Codex configuration"
+    return 1
+  fi
+
+  mkdir -p "$HOME/.codex"
+  tmp=$(mktemp "${TMPDIR:-/tmp}/codex-config.XXXXXX")
+
+  if [[ -f "$live" ]]; then
+    "$yq" eval-all -p=toml -o=toml '. as $item ireduce ({}; . * $item)' "$live" "$managed" >"$tmp"
+  else
+    "$yq" -p=toml -o=toml '.' "$managed" >"$tmp"
+  fi
+
+  chmod 600 "$tmp"
+  mv "$tmp" "$live"
+  log_info "Merged managed Codex settings → ~/.codex/config.toml"
 }
 
 # Point ~/.claude-ps/settings.json at the tracked settings.json so the `claude-ps`

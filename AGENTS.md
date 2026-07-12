@@ -42,6 +42,12 @@ The **default** identity is tracked as `config/claude/.claude/` → `~/.claude`.
 
 **Statusline** is `lib/claude/statusline.sh`, referenced by absolute path from the shared `settings.json`. Since both identities run the same script, it self-detects the identity from `$CLAUDE_CONFIG_DIR` and prints a trailing chip — `max` (purple) for the default, `enterprise` (blue) for `claude-ps` — so the active identity is always visible.
 
+### Codex config
+
+Portable Codex configuration is tracked under `config/codex/`. `home link codex` Stows authored files such as `hooks.json`, then merges `.codex/config.managed.toml` over the live `~/.codex/config.toml` with `yq`. The merge makes tracked keys authoritative while preserving Codex-generated project trust, plugin, desktop, marketplace, and hook-trust state.
+
+Do not commit the live `~/.codex/config.toml`: it contains machine-local paths and generated state. Add portable defaults to `config/codex/.codex/config.managed.toml`; add independently supported Codex files under `config/codex/` so Stow can link them.
+
 ### Package lists
 
 `pkg/brew/{taps,essentials,cask}` are plain newline-separated text files; `#` comments and blank lines are skipped. `pkg/lang/*` are shell snippets (one per runtime: bun, go, python, ruby, rust, zig) that get **sourced** (not executed) from `_install_langs`, so they share the parent shell's environment and `log_*` helpers.
