@@ -5,7 +5,6 @@
   "permissions": {
     "defaultMode": "auto"
   },
-  "model": "fable",
   "hooks": {
     "SessionStart": [
       {
@@ -34,7 +33,7 @@
   },
   "skipWorkflowUsageWarning": true,
   "theme": "auto",
+  "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "voiceEnabled": true,
-  "agentPushNotifEnabled": true
+  "voiceEnabled": true
 }
