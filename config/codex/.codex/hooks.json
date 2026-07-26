@@ -1,48 +1,6 @@
 {
   "hooks": {
-    "PermissionRequest": [
-      {
-        "hooks": [
-          {
-            "command": "hagent hook",
-            "type": "command"
-          }
-        ],
-        "matcher": ""
-      }
-    ],
-    "PostToolUse": [
-      {
-        "hooks": [
-          {
-            "command": "hagent hook",
-            "type": "command"
-          }
-        ],
-        "matcher": ""
-      }
-    ],
-    "PreToolUse": [
-      {
-        "hooks": [
-          {
-            "command": "hagent hook",
-            "type": "command"
-          }
-        ],
-        "matcher": ""
-      }
-    ],
     "SessionStart": [
-      {
-        "hooks": [
-          {
-            "command": "hagent hook",
-            "type": "command"
-          }
-        ],
-        "matcher": ""
-      },
       {
         "hooks": [
           {
@@ -51,28 +9,6 @@
             "type": "command"
           }
         ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "command": "hagent hook",
-            "type": "command"
-          }
-        ],
-        "matcher": ""
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "command": "hagent hook",
-            "type": "command"
-          }
-        ],
-        "matcher": ""
       }
     ]
   }
