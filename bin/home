@@ -265,7 +265,7 @@ _install_homebrew() {
 
 _setup_ssh() {
   local ssh_dir="$HOME/.ssh"
-  local vault_dir="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents/Vault"
+  local vault_dir="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Home/vault/ssh"
   local config_file="$ssh_dir/config"
 
   mkdir -p "$ssh_dir"
