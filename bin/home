@@ -231,7 +231,7 @@ Commands:
 
 Environment:
   DOTFILES              Path to dotfiles repo (default: ~/Code/hiradp/home)
-  WORK_DIR              Path to work repo (default: ~/Code/hiradp/work)
+  WORK_DIR              Path to work repo (default: ~/Code/planetscale)
 
 Examples:
   home setup                First-time machine setup
@@ -375,7 +375,7 @@ _install_tools() {
 }
 
 _work_bin() {
-  echo "${WORK_DIR:-$HOME/Code/hiradp/work}/bin/work"
+  echo "${WORK_DIR:-$HOME/Code/planetscale}/bin/work"
 }
 
 _has_work() {
