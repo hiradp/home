@@ -181,14 +181,16 @@ cmd_upgrade() {
     _run_work upgrade
   fi
 
-  log_section "Committing changes"
-  if [[ -z "$(git -C "$DOTFILES" status --porcelain)" ]]; then
+  log_section "Committing Neovim plugin lockfile"
+  local lazy_lock="config/nvim/.config/nvim/lazy-lock.json"
+  if git -C "$DOTFILES" diff --quiet HEAD -- "$lazy_lock"; then
     log_dim "Nothing to commit"
   else
-    git -C "$DOTFILES" add -A
-    git -C "$DOTFILES" commit -m "chore: upgrade"
+    # Commit only the lockfile from the working tree. `--only` deliberately
+    # excludes every other path, including changes already staged by the user.
+    git -C "$DOTFILES" commit --only -m "chore: upgrade" -- "$lazy_lock"
     git -C "$DOTFILES" push
-    log_ok "Changes committed and pushed"
+    log_ok "Neovim plugin lockfile committed and pushed"
   fi
 
   log_banner "Upgrade complete"
@@ -225,7 +227,7 @@ Commands:
   setup                 First-time setup (install + link)
   install [type]        Install packages (essentials, casks, langs, tools, all)
   link [folders...]     Link configs to ~ using stow (default: all)
-  upgrade               Upgrade brew packages and Neovim plugins, then commit + push
+  upgrade               Upgrade brew + Neovim, then commit + push lazy-lock.json
   connect               Connect to ZeroTier network (ID from iCloud)
   help                  Show this help message
 
@@ -240,7 +242,7 @@ Examples:
   home install casks        Install only GUI apps
   home install langs        Install language runtimes (bun, go, python, ruby, rust, zig)
   home install tools        Install standalone tools (cursor)
-  home upgrade              Upgrade brew + nvim plugins, commit + push changes
+  home upgrade              Upgrade brew + nvim, commit + push lazy-lock.json
   home link                 Link all config folders
   home link nvim fish       Link only nvim and fish configs
 EOF
