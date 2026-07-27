@@ -34,8 +34,6 @@
   process = git-lfs filter-process
   required = true
 [includeIf "gitdir:~/Code/planetscale/"]
-  path = ~/Code/hiradp/work/config/git/.gitconfig
-[includeIf "gitdir:~/Code/hiradp/work/"]
-  path = ~/Code/hiradp/work/config/git/.gitconfig
+  path = ~/Code/planetscale/config/git/.gitconfig
 [includeIf "gitdir:~/Code/.worktrees/"]
-  path = ~/Code/hiradp/work/config/git/.gitconfig
+  path = ~/Code/planetscale/config/git/.gitconfig
