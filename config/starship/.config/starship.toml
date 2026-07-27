@@ -5,8 +5,8 @@ format = """
 $time$hostname$directory$git_branch$git_status
 $character"""
 
-# Keep consecutive prompts compact.
-add_newline = false
+# Blank line between the previous command's output and the next prompt.
+add_newline = true
 
 [time]
 disabled = false
