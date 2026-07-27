@@ -37,5 +37,3 @@
   required = true
 [includeIf "gitdir:~/Code/planetscale/"]
   path = ~/Code/planetscale/config/git/.gitconfig
-[includeIf "gitdir:~/Code/.worktrees/"]
-  path = ~/Code/planetscale/config/git/.gitconfig
