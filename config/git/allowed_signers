@@ -1,0 +1,12 @@
+# Keys trusted to verify commit signatures, referenced by gpg.ssh.allowedSignersFile.
+# Without this file git cannot check SSH signatures at all — `git log --show-signature`
+# errors and %G? reports every commit as unsigned, even correctly signed ones.
+#
+# namespaces="git" limits each key to git signatures, so a key here cannot be
+# used to verify signatures from other ssh-keygen contexts.
+#
+# The work identity is deliberately absent: it has its own file in the
+# planetscale repo, which the includeIf for ~/Code/planetscale/ points at.
+# Keeping it out lets this repo stay public-shareable.
+
+git@hirad.codes namespaces="git" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEkOL318qjukhUfIb/PA0guz+DQiuCt0H4GCqWNON/Kz
