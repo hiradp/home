@@ -66,13 +66,11 @@ All scripts (except `bootstrap`, which inlines its own copy because it runs befo
 
 `bin/tmux-sessionizer` is a substantial script that creates tmux sessions from `.tmux-config.yaml` files (or auto-discovers from subdirectories). Full schema is documented in the script header — read it before changing layout/pane logic. Supports preset layouts (`main-horizontal` etc.), recursive tree layouts (split maps with `panes`), and absolute / `~`-prefixed `dir` values.
 
-### tmux-theme
+### tmux colours
 
-`bin/tmux-theme` matches tmux to macOS appearance. `--watch` mode uses `dark-notify` and PID-files itself in `$TMPDIR`; running it again kills the previous watcher. The theme files (`themes/{light,dark}.conf`) set only the light/dark *surface* (`@bg`/`@fg`/`status-bg`/`pane-border-style`) — the per-session *accent* is theme-independent and lives in `.tmux.conf` (see below).
+Dark only, all of it in `.tmux.conf`. The *surface* (`@bg`/`@fg`/`status-bg`/`pane-border-style`) is set inline near the top of the Style section. There used to be `themes/{light,dark}.conf` and a `bin/tmux-theme` watcher that swapped them on macOS appearance changes; both are gone, so don't reintroduce a `~/.config/tmux/themes` lookup.
 
-### Per-session accent colours (`@theme`)
-
-`@theme` in `.tmux.conf` maps the **session name** to a status-bar accent, re-evaluated per session via `#{E:@theme}`: `planetscale` → red, `hiradp` → green, and everything else → blue.
+`@theme` is the per-session *accent*, mapping the **session name** to a status-bar colour, re-evaluated per session via `#{E:@theme}`: `planetscale` → red, `hiradp` → green, and everything else → blue.
 
 ## Commit style
 
