@@ -5,8 +5,9 @@ set -euo pipefail
 DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
 DEFAULT_FOLDERS="atuin claude codex fish ghostty git herdr nvim starship tmux yazi"
 
-# Source logging library
+# Source shared libraries
 source "$DOTFILES/lib/log.sh"
+source "$DOTFILES/lib/pkg.sh"
 
 # ------------------------------------------------------------------------------
 # Commands
@@ -105,11 +106,10 @@ cmd_install() {
 
   case "$type" in
   essentials)
-    _tap_from_file "$DOTFILES/pkg/brew/taps"
-    _install_from_file "$DOTFILES/pkg/brew/essentials"
+    pkg_install_from_file "$DOTFILES/pkg/brew/essentials"
     ;;
   casks)
-    _install_from_file "$DOTFILES/pkg/brew/cask" --cask
+    pkg_install_from_file "$DOTFILES/pkg/brew/cask" --cask
     ;;
   langs)
     _install_langs
@@ -118,9 +118,8 @@ cmd_install() {
     _install_tools
     ;;
   all)
-    _tap_from_file "$DOTFILES/pkg/brew/taps"
-    _install_from_file "$DOTFILES/pkg/brew/essentials"
-    _install_from_file "$DOTFILES/pkg/brew/cask" --cask
+    pkg_install_from_file "$DOTFILES/pkg/brew/essentials"
+    pkg_install_from_file "$DOTFILES/pkg/brew/cask" --cask
     _install_langs
     _install_tools
     ;;
@@ -240,7 +239,7 @@ Examples:
   home install              Install all packages (and work, if present)
   home install essentials   Install only CLI tools
   home install casks        Install only GUI apps
-  home install langs        Install language runtimes (bun, go, python, ruby, rust, zig)
+  home install langs        Install language runtimes (go, rust)
   home install tools        Install standalone tools (cursor)
   home upgrade              Upgrade brew + nvim, commit + push lazy-lock.json
   home link                 Link all config folders
@@ -301,36 +300,6 @@ EOF
   ssh-add --apple-use-keychain "$ssh_dir/id_ed25519" 2>/dev/null || true
 }
 
-_tap_from_file() {
-  local file="$1"
-  [[ -f "$file" ]] || return 0
-  while IFS= read -r tap || [[ -n "$tap" ]]; do
-    [[ -z "$tap" || "$tap" =~ ^# ]] && continue
-    log_dim "Tapping $tap..."
-    if ! brew tap "$tap" </dev/null; then
-      log_warn "Failed to tap $tap"
-    fi
-  done <"$file"
-}
-
-_install_from_file() {
-  local file="$1"
-  local flag="${2:-}"
-
-  if [[ ! -f "$file" ]]; then
-    log_error "File not found: $file"
-    exit 1
-  fi
-
-  while IFS= read -r package || [[ -n "$package" ]]; do
-    [[ -z "$package" || "$package" =~ ^# ]] && continue
-    log_dim "Installing $package..."
-    if ! brew install $flag "$package" </dev/null; then
-      log_warn "Failed to install $package (may already exist outside Homebrew)"
-    fi
-  done <"$file"
-}
-
 _setup_remotes() {
   local private_url="git@github.com:hiradp/home-private.git"
   local public_url="git@github.com:hiradp/home.git"
@@ -360,20 +329,12 @@ _setup_remotes() {
 
 _install_langs() {
   log_info "Installing language runtimes..."
-  for script in "$DOTFILES/pkg/lang"/*; do
-    [[ -f "$script" ]] || continue
-    log_dim "$(basename "$script")"
-    source "$script"
-  done
+  pkg_source_dir "$DOTFILES/pkg/lang"
 }
 
 _install_tools() {
   log_info "Installing tools..."
-  for script in "$DOTFILES/pkg/tool"/*; do
-    [[ -f "$script" ]] || continue
-    log_dim "$(basename "$script")"
-    source "$script"
-  done
+  pkg_source_dir "$DOTFILES/pkg/tool"
 }
 
 _work_bin() {
