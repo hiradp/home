@@ -50,9 +50,13 @@ Do not commit the live `~/.codex/config.toml`: it contains machine-local paths a
 
 ### Package lists
 
-`pkg/brew/{taps,essentials,cask}` are plain newline-separated text files; `#` comments and blank lines are skipped. `pkg/lang/*` are shell snippets (one per runtime: bun, go, python, ruby, rust, zig) that get **sourced** (not executed) from `_install_langs`, so they share the parent shell's environment and `log_*` helpers.
+`pkg/brew/{essentials,cask}` are plain newline-separated text files; `#` comments and blank lines are skipped. `pkg/lang/*` are shell snippets (one per runtime: go, rust) that get **sourced** (not executed) from `_install_langs`, so they share the parent shell's environment and `log_*` helpers.
 
 `pkg/tool/*` follow the same pattern for standalone tools installed outside Homebrew (e.g. cursor CLI). Sourced from `_install_tools`.
+
+Everything here must be tap-free — plain `brew install` off homebrew-core or a cask. A package that needs its own tap belongs somewhere else or nowhere; carrying a tap file for one binary is what got `dark-notify` dropped.
+
+Work-only packages live in the work repo's own `pkg/` (see `$WORK_DIR/AGENTS.md`), not here — `home install` chains to `work install`, so both lists get applied on a work machine. Slack, Notion, and Ruby are work-owned for that reason.
 
 ### Logging convention
 
