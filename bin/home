@@ -3,7 +3,7 @@
 set -euo pipefail
 
 DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
-DEFAULT_FOLDERS="atuin claude codex fish ghostty git herdr nvim starship tmux yazi"
+DEFAULT_FOLDERS="atuin claude codex fish ghostty git herdr nvim pi starship tmux yazi"
 
 # Source shared libraries
 source "$DOTFILES/lib/log.sh"

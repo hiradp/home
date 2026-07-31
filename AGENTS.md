@@ -48,6 +48,10 @@ Portable Codex configuration is tracked under `config/codex/`. `home link codex`
 
 Do not commit the live `~/.codex/config.toml`: it contains machine-local paths and generated state. Add portable defaults to `config/codex/.codex/config.managed.toml`; add independently supported Codex files under `config/codex/` so Stow can link them.
 
+### Pi config
+
+Portable pi settings are tracked under `config/pi/.pi/agent/` → `~/.pi/agent`. Only `settings.json` and `extensions/` are committed — the `.gitignore` pins them; auth, sessions, npm-installed packages, and trust state are runtime and stay out of the repo. `extensions/herdr-agent-state.ts` is installed and overwritten by herdr itself (the file header says so), so it is ignored too — only commit extensions you actually authored. Pi writes `settings.json` in place, so the stow symlink survives upgrades, but an upgrade bumps `lastChangelogVersion` in the tracked file — commit or discard that one-line churn as you see fit. The npm `packages` array in `settings.json` self-installs on startup, so pi needs no `pkg/` entry.
+
 ### Package lists
 
 `pkg/brew/{essentials,cask}` are plain newline-separated text files; `#` comments and blank lines are skipped. `pkg/lang/*` are shell snippets (one per runtime: go, rust) that get **sourced** (not executed) from `_install_langs`, so they share the parent shell's environment and `log_*` helpers.

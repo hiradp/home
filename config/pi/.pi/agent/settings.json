@@ -1,0 +1,11 @@
+{
+  "lastChangelogVersion": "0.83.0",
+  "packages": [
+    "npm:pi-subagents",
+    "npm:@mattrobenolt/pi-webfetch"
+  ],
+  "theme": "dark",
+  "defaultProvider": "fireworks",
+  "defaultModel": "accounts/fireworks/models/kimi-k3",
+  "defaultThinkingLevel": "medium"
+}

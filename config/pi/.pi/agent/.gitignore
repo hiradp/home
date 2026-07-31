@@ -1,0 +1,6 @@
+/*
+!/.gitignore
+!/settings.json
+
+!/extensions/
+/extensions/herdr-agent-state.ts
