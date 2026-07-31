@@ -5,7 +5,7 @@
     "npm:@mattrobenolt/pi-webfetch"
   ],
   "theme": "dark",
-  "defaultProvider": "fireworks",
-  "defaultModel": "accounts/fireworks/models/kimi-k3",
-  "defaultThinkingLevel": "medium"
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.6-sol",
+  "defaultThinkingLevel": "high"
 }
