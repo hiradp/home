@@ -24,6 +24,3 @@ macos-option-as-alt = left
 background-blur = true
 background-opacity = 0.80
 theme = light:Gruvbox Light Hard,dark:Builtin Pastel Dark
-
-# Claude
-keybind = shift+enter=text:\x1b\r

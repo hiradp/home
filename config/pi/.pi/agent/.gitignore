@@ -1,5 +1,6 @@
 /*
 !/.gitignore
+!/keybindings.json
 !/settings.json
 
 !/extensions/
