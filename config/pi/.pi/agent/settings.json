@@ -1,9 +1,6 @@
 {
   "lastChangelogVersion": "0.83.0",
-  "packages": [
-    "npm:pi-subagents",
-    "npm:@mattrobenolt/pi-webfetch"
-  ],
+  "packages": [],
   "theme": "dark",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.6-sol",
