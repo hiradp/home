@@ -9,7 +9,7 @@
   "editorPaddingX": 1,
   "defaultBranchGuard": {
     "allowed": [
-      "hiradp/home-private"
+      "hiradp/*"
     ]
   }
 }

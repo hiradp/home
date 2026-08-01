@@ -5,8 +5,8 @@
  * branch. Pushes that explicitly target a default branch are blocked too.
  * Applies to both agent bash tool calls and user !/!! commands.
  *
- * Repositories can be exempted in ~/.pi/agent/settings.json:
- *   "defaultBranchGuard": { "allowed": ["owner/repo"] }
+ * Repositories or entire owners can be exempted in ~/.pi/agent/settings.json:
+ *   "defaultBranchGuard": { "allowed": ["owner/repo", "owner/*"] }
  */
 
 import { readFile, realpath } from "node:fs/promises";
@@ -131,6 +131,17 @@ function repositorySlug(value: string): string | undefined {
   return candidate.includes("/") ? candidate.toLowerCase() : undefined;
 }
 
+function repositorySlugIsAllowed(configured: string, repositories: Set<string>): boolean {
+  if (!configured.endsWith("/*")) return repositories.has(configured);
+
+  const owner = configured.slice(0, -2);
+  if (!owner || owner.includes("/")) return false;
+  return [...repositories].some((repository) => {
+    const [repositoryOwner, repositoryName, ...rest] = repository.split("/");
+    return repositoryOwner === owner && Boolean(repositoryName) && rest.length === 0;
+  });
+}
+
 async function repositoryIsAllowed(
   pi: ExtensionAPI,
   cwd: string,
@@ -162,7 +173,7 @@ async function repositoryIsAllowed(
       }
     }
     const slug = repositorySlug(entry);
-    if (slug !== undefined && slugs.has(slug)) return true;
+    if (slug !== undefined && repositorySlugIsAllowed(slug, slugs)) return true;
   }
   return false;
 }
