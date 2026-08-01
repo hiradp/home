@@ -20,6 +20,9 @@ window-save-state = always
 # MacOS specific settings
 macos-option-as-alt = left
 
+# Send Shift+Enter as Pi's Ctrl+J multiline-input alias.
+keybind = shift+enter=text:\n
+
 # Colors for my eyes
 background-blur = true
 background-opacity = 0.80
