@@ -1,7 +1,12 @@
 /*
 !/.gitignore
+!/.oxfmtrc.json
 !/keybindings.json
+!/package.json
+!/pnpm-lock.yaml
+!/pnpm-workspace.yaml
 !/settings.json
+!/tsconfig.json
 
 !/extensions/
 /extensions/herdr-agent-state.ts

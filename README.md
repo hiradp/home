@@ -29,3 +29,13 @@ Commands:
   link [folders...]     Link configs to ~ using stow (default: all)
   help                  Show this help message
 ```
+
+## Development
+
+Pi extensions are checked with TypeScript, Oxlint, and Oxfmt:
+
+```bash
+just pi-install
+just pi-check
+just pi-format # apply formatting
+```

@@ -1,0 +1,23 @@
+{
+  "name": "home-pi-extensions",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "fmt": "oxfmt extensions",
+    "fmt:check": "oxfmt extensions --check",
+    "lint": "oxlint extensions"
+  },
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "0.83.0",
+    "@earendil-works/pi-tui": "0.83.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "oxfmt": "^0.60.0",
+    "oxlint": "^1.75.0",
+    "typescript": "^7.0.2"
+  },
+  "packageManager": "pnpm@11.17.0"
+}

@@ -4,7 +4,7 @@ This file provides guidance to coding agents working in this repository.
 
 ## What this repo is
 
-Personal dotfiles, managed by the `home` CLI in `bin/home`. There is no build, no test suite, and no language toolchain — it's bash + GNU stow + Homebrew package lists.
+Personal dotfiles, managed by the `home` CLI in `bin/home`. Most of the repo is bash + GNU stow + Homebrew package lists. Pi extensions under `config/pi/.pi/agent/extensions/` are TypeScript and use the pnpm/Oxc quality toolchain local to `config/pi/.pi/agent/`; there is no application build or test suite.
 
 ## Common commands
 
@@ -14,6 +14,10 @@ home install [type]       # Install packages: essentials | casks | langs | tools
 home link [folders...]    # Stow configs into $HOME (default: all in $DEFAULT_FOLDERS)
 home upgrade              # git pull --ff-only, brew update/upgrade, nvim Lazy! sync; runs `work upgrade` when $WORK_DIR exists
 home connect              # Join ZeroTier network using ID stored in iCloud
+
+just pi-install           # Install Pi TypeScript quality-tool dependencies
+just pi-check             # Check Oxfmt formatting, Oxlint, and TypeScript types
+just pi-format            # Format tracked Pi extensions with Oxfmt
 ```
 
 `bin/bootstrap` is the curl-piped fresh-Mac entrypoint: it installs Xcode CLI tools, clones the repo to `$DOTFILES` (default `~/Code/hiradp/home`), then runs `home setup`.
@@ -50,7 +54,7 @@ Do not commit the live `~/.codex/config.toml`: it contains machine-local paths a
 
 ### Pi config
 
-Portable pi settings are tracked under `config/pi/.pi/agent/` → `~/.pi/agent`. Only `settings.json` and `extensions/` are committed — the `.gitignore` pins them; auth, sessions, npm-installed packages, and trust state are runtime and stay out of the repo. `extensions/herdr-agent-state.ts` is installed and overwritten by herdr itself (the file header says so), so it is ignored too — only commit extensions you actually authored. Pi writes `settings.json` in place, so the stow symlink survives upgrades, but an upgrade bumps `lastChangelogVersion` in the tracked file — commit or discard that one-line churn as you see fit. The npm `packages` array in `settings.json` self-installs on startup, so pi needs no `pkg/` entry.
+Portable pi settings are tracked under `config/pi/.pi/agent/` → `~/.pi/agent`. `settings.json`, authored extensions, and the local pnpm/Oxc/TypeScript configuration and package metadata are committed — the `.gitignore` pins them; auth, sessions, `node_modules`, pi-installed packages, and trust state are runtime and stay out of the repo. `extensions/herdr-agent-state.ts` is installed and overwritten by herdr itself (the file header says so), so it is ignored too — only commit extensions you actually authored. Install quality-tool dependencies with `just pi-install` from the repository root. Pi writes `settings.json` in place, so the stow symlink survives upgrades, but an upgrade bumps `lastChangelogVersion` in the tracked file — commit or discard that one-line churn as you see fit. The npm `packages` array in `settings.json` self-installs on startup, so pi needs no `pkg/` entry.
 
 ### Package lists
 
