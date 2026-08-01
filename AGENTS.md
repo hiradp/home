@@ -4,7 +4,7 @@ This file provides guidance to coding agents working in this repository.
 
 ## What this repo is
 
-Personal dotfiles, managed by the `home` CLI in `bin/home`. Most of the repo is bash + GNU stow + Homebrew package lists. Pi extensions under `config/pi/.pi/agent/extensions/` are TypeScript and use the pnpm/Oxc quality toolchain local to `config/pi/.pi/agent/`; there is no application build or test suite.
+Personal dotfiles, managed by the `home` CLI in `bin/home`. Most of the repo is bash + GNU stow + Homebrew package lists. Pi extensions under `config/pi/.pi/agent/extensions/` are TypeScript and use the pnpm/Oxc/TypeScript quality toolchain local to `config/pi/.pi/agent/`; there is no application build.
 
 ## Common commands
 
@@ -16,7 +16,7 @@ home upgrade              # git pull --ff-only, brew update/upgrade, nvim Lazy! 
 home connect              # Join ZeroTier network using ID stored in iCloud
 
 just pi-install           # Install Pi TypeScript quality-tool dependencies
-just pi-check             # Check Oxfmt formatting, Oxlint, and TypeScript types
+just pi-check             # Check Oxfmt formatting, Oxlint, TypeScript types, and Pi extension tests
 just pi-format            # Format tracked Pi extensions with Oxfmt
 ```
 

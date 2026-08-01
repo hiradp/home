@@ -12,6 +12,7 @@ pi-check:
     pnpm --dir "{{ pi_dir }}" fmt:check
     pnpm --dir "{{ pi_dir }}" lint
     pnpm --dir "{{ pi_dir }}" check
+    pnpm --dir "{{ pi_dir }}" test
 
 # Format Pi extensions
 pi-format:

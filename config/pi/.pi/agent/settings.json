@@ -7,9 +7,11 @@
   "defaultThinkingLevel": "high",
   "quietStartup": true,
   "editorPaddingX": 1,
-  "defaultBranchGuard": {
-    "allowed": [
-      "hiradp/*"
-    ]
+  "guardrails": {
+    "defaultBranch": {
+      "allowed": [
+        "hiradp/*"
+      ]
+    }
   }
 }
