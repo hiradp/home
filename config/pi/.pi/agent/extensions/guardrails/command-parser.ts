@@ -1,6 +1,11 @@
 import { homedir } from "node:os";
 import { basename, resolve } from "node:path";
 
+export interface CommandInvocation {
+  command: string;
+  args: string[];
+}
+
 export interface GitInvocation {
   cwd: string;
   subcommand: string;
@@ -73,6 +78,27 @@ function isCommandPosition(words: string[], index: number): boolean {
   const prefix = words.slice(start + 1, index);
   if (prefix.every((word) => /^[A-Za-z_][A-Za-z0-9_]*=/.test(word))) return true;
   return COMMAND_WRAPPERS.has(prefix[0]);
+}
+
+export function findCommandInvocations(
+  command: string,
+  commandNames: ReadonlySet<string>,
+): CommandInvocation[] {
+  const words = shellWords(command);
+  const invocations: CommandInvocation[] = [];
+
+  for (let i = 0; i < words.length; i++) {
+    const commandName = basename(words[i]);
+    if (!commandNames.has(commandName) || !isCommandPosition(words, i)) continue;
+
+    const args: string[] = [];
+    for (let cursor = i + 1; cursor < words.length && words[cursor] !== ";"; cursor++) {
+      args.push(words[cursor]);
+    }
+    invocations.push({ command: commandName, args });
+  }
+
+  return invocations;
 }
 
 export function findGitInvocations(command: string, baseCwd: string): GitInvocation[] {

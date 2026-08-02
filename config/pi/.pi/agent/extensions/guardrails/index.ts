@@ -1,19 +1,20 @@
 /**
  * Guardrails
  *
- * Central entry point for Pi safety policies. The default-branch policy blocks
- * Git commits and pushes while a repository is on its default branch. Pushes
- * that explicitly target a default branch are blocked too.
+ * Central entry point for Pi safety policies. Policies can block configured
+ * commands, restrict kubectl to read-oriented operations, and prevent Git
+ * commits or pushes involving a repository's default branch.
  *
- * Repositories or entire owners can be exempted in ~/.pi/agent/settings.json:
- *   "guardrails": { "defaultBranch": { "allowed": ["owner/repo", "owner/*"] } }
+ * Configure policies under "guardrails" in ~/.pi/agent/settings.json.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { blockedCommandsPolicy } from "./policies/blocked-commands.ts";
 import { defaultBranchPolicy } from "./policies/default-branch.ts";
+import { kubectlPolicy } from "./policies/kubectl.ts";
 import type { GuardrailContext, GuardrailPolicy } from "./policy.ts";
 
-const policies: GuardrailPolicy[] = [defaultBranchPolicy];
+const policies: GuardrailPolicy[] = [blockedCommandsPolicy, defaultBranchPolicy, kubectlPolicy];
 
 async function commandBlockedReason(
   command: string,

@@ -8,9 +8,49 @@
   "quietStartup": true,
   "editorPaddingX": 1,
   "guardrails": {
+    "commands": {
+      "blocked": [
+        "wrangler"
+      ]
+    },
     "defaultBranch": {
       "allowed": [
         "hiradp/*"
+      ]
+    },
+    "kubectl": {
+      "invocations": [
+        {
+          "command": "kubectl"
+        },
+        {
+          "command": "k"
+        },
+        {
+          "command": "pskube",
+          "skipArguments": 1
+        }
+      ],
+      "allowedCommands": [
+        "api-resources",
+        "api-versions",
+        "auth can-i",
+        "auth whoami",
+        "completion",
+        "config current-context",
+        "config get-contexts",
+        "config view",
+        "describe",
+        "explain",
+        "get",
+        "help",
+        "logs",
+        "options",
+        "rollout history",
+        "rollout status",
+        "top",
+        "version",
+        "wait"
       ]
     }
   }
