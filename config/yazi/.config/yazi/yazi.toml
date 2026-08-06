@@ -1,6 +1,0 @@
-[mgr]
-ratio = [1, 2, 5]
-show_hidden = true
-
-[opener]
-edit = [{ run = 'nvim "$@"', block = true }]
