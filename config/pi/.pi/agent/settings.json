@@ -1,8 +1,5 @@
 {
   "lastChangelogVersion": "0.83.0",
-  "packages": [
-    "npm:pi-subagents"
-  ],
   "theme": "dark",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.6-sol",
@@ -11,14 +8,10 @@
   "editorPaddingX": 1,
   "guardrails": {
     "commands": {
-      "blocked": [
-        "wrangler"
-      ]
+      "blocked": ["wrangler"]
     },
     "defaultBranch": {
-      "allowed": [
-        "hiradp/*"
-      ]
+      "allowed": ["hiradp/*"]
     },
     "kubectl": {
       "invocations": [
