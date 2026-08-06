@@ -7,8 +7,7 @@ import {
   expandHome,
   type GitInvocation,
 } from "../command-parser.ts";
-import { loadDefaultBranchGuardConfig } from "../config.ts";
-import type { GuardrailPolicy } from "../policy.ts";
+import { block, type GuardrailPolicy } from "../policy.ts";
 
 interface RepoState {
   branch: string;
@@ -67,9 +66,9 @@ function repositorySlugIsAllowed(configured: string, repositories: Set<string>):
 export async function repositoryIsAllowed(
   pi: ExtensionAPI,
   cwd: string,
+  allowedRepositories: string[],
   signal?: AbortSignal,
 ): Promise<boolean> {
-  const { allowedRepositories } = await loadDefaultBranchGuardConfig();
   if (allowedRepositories.length === 0) return false;
 
   const root = await git(pi, cwd, ["rev-parse", "--show-toplevel"], signal);
@@ -189,12 +188,13 @@ async function blockedDefaultBranchReason(
   pi: ExtensionAPI,
   command: string,
   cwd: string,
+  allowedRepositories: string[],
   signal?: AbortSignal,
 ): Promise<string | undefined> {
   for (const invocation of findGitInvocations(command, cwd)) {
     const action = await resolveAction(pi, invocation, signal);
     if (!action) continue;
-    if (await repositoryIsAllowed(pi, invocation.cwd, signal)) continue;
+    if (await repositoryIsAllowed(pi, invocation.cwd, allowedRepositories, signal)) continue;
 
     const state = await repoState(pi, invocation.cwd, signal);
     if (!state) continue;
@@ -223,11 +223,21 @@ async function blockedDefaultBranchReason(
 
 export const defaultBranchPolicy = {
   name: "default-branch",
-  async guidance({ pi, cwd, signal }) {
-    if (await repositoryIsAllowed(pi, cwd, signal)) return;
+  async guidance({ pi, cwd, config, signal }) {
+    if (await repositoryIsAllowed(pi, cwd, config.defaultBranch.allowedRepositories, signal)) {
+      return;
+    }
     return defaultBranchGuidance;
   },
-  async checkCommand(command, { pi, cwd, signal }) {
-    return blockedDefaultBranchReason(pi, command, cwd, signal);
+  async check(action, { pi, cwd, config, signal }) {
+    if (action.toolName !== "bash" || typeof action.input.command !== "string") return;
+    const reason = await blockedDefaultBranchReason(
+      pi,
+      action.input.command,
+      cwd,
+      config.defaultBranch.allowedRepositories,
+      signal,
+    );
+    return reason ? block(reason) : undefined;
   },
 } satisfies GuardrailPolicy;

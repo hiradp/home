@@ -137,3 +137,162 @@ export function findGitInvocations(command: string, baseCwd: string): GitInvocat
 
   return invocations;
 }
+
+export interface ShellSegment {
+  text: string;
+  words: string[];
+  redirectTargets: string[];
+}
+
+function splitShellSegments(command: string): string[] {
+  const segments: string[] = [];
+  let current = "";
+  let quote: "'" | '"' | "`" | undefined;
+  let escaped = false;
+
+  for (let i = 0; i < command.length; i++) {
+    const char = command[i];
+    const next = command[i + 1];
+    if (escaped) {
+      current += char;
+      escaped = false;
+      continue;
+    }
+    if (char === "\\" && quote !== "'") {
+      current += char;
+      escaped = true;
+      continue;
+    }
+    if (quote) {
+      current += char;
+      if (char === quote) quote = undefined;
+      continue;
+    }
+    if (char === "'" || char === '"' || char === "`") {
+      quote = char;
+      current += char;
+      continue;
+    }
+    if (char === ";" || char === "\n" || char === "|" || (char === "&" && next === "&")) {
+      if (current.trim()) segments.push(current.trim());
+      current = "";
+      if ((char === "|" && next === "|") || (char === "&" && next === "&")) i++;
+      continue;
+    }
+    current += char;
+  }
+  if (current.trim()) segments.push(current.trim());
+  return segments;
+}
+
+function tokenizeShellSegment(text: string): string[] {
+  const tokens: string[] = [];
+  let current = "";
+  let quote: "'" | '"' | "`" | undefined;
+  let escaped = false;
+
+  const flush = () => {
+    if (current) tokens.push(current);
+    current = "";
+  };
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (escaped) {
+      current += char;
+      escaped = false;
+      continue;
+    }
+    if (char === "\\" && quote !== "'") {
+      escaped = true;
+      continue;
+    }
+    if (quote) {
+      if (char === quote) quote = undefined;
+      else current += char;
+      continue;
+    }
+    if (char === "'" || char === '"' || char === "`") {
+      quote = char;
+      continue;
+    }
+    if (/\s/.test(char)) {
+      flush();
+      continue;
+    }
+    if (char === ">" || char === "<") {
+      let operator = char;
+      if (/^\d+$/.test(current)) operator = `${current}${char}`;
+      else flush();
+      if (text[i + 1] === ">" || text[i + 1] === "&") {
+        operator += text[i + 1];
+        i++;
+      }
+      tokens.push(operator);
+      current = "";
+      continue;
+    }
+    current += char;
+  }
+  flush();
+  return tokens;
+}
+
+/**
+ * Parse the shell structure needed by deterministic safety policies.
+ * This intentionally is not a complete POSIX shell parser.
+ */
+export function parseShellSegments(command: string): ShellSegment[] {
+  return splitShellSegments(command).map((text) => {
+    const tokens = tokenizeShellSegment(text);
+    const words: string[] = [];
+    const redirectTargets: string[] = [];
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+      if (/^(?:\d?>|\d?>>|>|>>|&>|<)$/.test(token)) {
+        const target = tokens[i + 1];
+        if (target) redirectTargets.push(target);
+        i++;
+        continue;
+      }
+      words.push(token);
+    }
+    return { text, words, redirectTargets };
+  });
+}
+
+const WRAPPERS = new Set(["command", "env", "exec", "nohup", "sudo"]);
+const WRAPPER_OPTIONS_WITH_VALUE = new Set(["-C", "--chdir", "-g", "--group", "-u", "--user"]);
+
+/** Resolve the executable and arguments after common command wrappers. */
+export function shellSegmentInvocation(
+  segment: ShellSegment,
+): { command: string; args: string[] } | undefined {
+  let index = 0;
+  while (index < segment.words.length) {
+    while (/^[A-Za-z_][A-Za-z0-9_]*=/.test(segment.words[index] ?? "")) index++;
+    const command = basename(segment.words[index] ?? "");
+    if (!command) return;
+    if (!WRAPPERS.has(command)) {
+      return { command, args: segment.words.slice(index + 1) };
+    }
+
+    index++;
+    while (index < segment.words.length) {
+      const argument = segment.words[index];
+      if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(argument)) {
+        index++;
+        continue;
+      }
+      if (WRAPPER_OPTIONS_WITH_VALUE.has(argument)) {
+        index += 2;
+        continue;
+      }
+      if (argument.startsWith("-")) {
+        index++;
+        continue;
+      }
+      break;
+    }
+  }
+}

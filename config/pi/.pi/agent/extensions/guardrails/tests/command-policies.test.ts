@@ -4,7 +4,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, beforeEach, describe, test } from "node:test";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { loadBlockedCommandsConfig, loadKubectlGuardConfig } from "../config.ts";
+import {
+  loadBlockedCommandsConfig,
+  loadGuardrailsConfig,
+  loadKubectlGuardConfig,
+} from "../config.ts";
 import { blockedCommandsPolicy } from "../policies/blocked-commands.ts";
 import { kubectlPolicy } from "../policies/kubectl.ts";
 import type { GuardrailPolicy } from "../policy.ts";
@@ -43,7 +47,12 @@ async function writeSettings(value: unknown = settings): Promise<void> {
 }
 
 async function check(policy: GuardrailPolicy, command: string): Promise<string | undefined> {
-  return policy.checkCommand(command, { pi, cwd: "/work/project" });
+  const { config } = await loadGuardrailsConfig();
+  const decision = await policy.check(
+    { source: "agent", toolName: "bash", input: { command } },
+    { pi, cwd: "/work/project", config, maintenance: false },
+  );
+  return decision?.reason;
 }
 
 before(async () => {

@@ -13,6 +13,36 @@
     "defaultBranch": {
       "allowed": ["hiradp/*"]
     },
+    "paths": {
+      "blocked": [".git", ".git/**", "~/.ssh"],
+      "confirm": [".env", ".env.*", ".pi", ".pi/**", "~/.ssh/**"]
+    },
+    "semanticReview": {
+      "enabled": true,
+      "mode": "enforce",
+      "timeoutMs": 15000,
+      "commands": [
+        "aws",
+        "docker push",
+        "gcloud",
+        "gh",
+        "git push",
+        "npm publish",
+        "pnpm publish",
+        "pulumi",
+        "terraform",
+        "pskube",
+        "k",
+        "kubectl"
+      ],
+      "paths": [
+        ".github/workflows",
+        ".github/workflows/**",
+        ".circleci",
+        ".circleci/**",
+        ".gitlab-ci.yml"
+      ]
+    },
     "kubectl": {
       "invocations": [
         {

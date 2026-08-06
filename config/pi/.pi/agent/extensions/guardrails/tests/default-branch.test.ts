@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { after, before, beforeEach, describe, test } from "node:test";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { findGitInvocations } from "../command-parser.ts";
-import { loadDefaultBranchGuardConfig } from "../config.ts";
+import { loadDefaultBranchGuardConfig, loadGuardrailsConfig } from "../config.ts";
 import { defaultBranchPolicy } from "../policies/default-branch.ts";
 
 const pi = {
@@ -53,8 +53,17 @@ async function createRepository(remoteOwner = "someone-else"): Promise<string> {
   return cwd;
 }
 
+async function guardContext(cwd: string) {
+  const { config } = await loadGuardrailsConfig();
+  return { pi, cwd, config, maintenance: false };
+}
+
 async function check(command: string, cwd: string): Promise<string | undefined> {
-  return defaultBranchPolicy.checkCommand(command, { pi, cwd });
+  const decision = await defaultBranchPolicy.check(
+    { source: "agent", toolName: "bash", input: { command } },
+    await guardContext(cwd),
+  );
+  return decision?.reason;
 }
 
 describe("default branch guard", { concurrency: false }, () => {
@@ -126,7 +135,7 @@ describe("default branch guard", { concurrency: false }, () => {
     const cwd = await createRepository("hiradp");
     await configureAllowed(["hiradp/*"]);
     assert.equal(await check("git commit -m test", cwd), undefined);
-    assert.equal(await defaultBranchPolicy.guidance?.({ pi, cwd }), undefined);
+    assert.equal(await defaultBranchPolicy.guidance?.(await guardContext(cwd)), undefined);
   });
 
   test("does not allow repositories owned by someone else", async () => {

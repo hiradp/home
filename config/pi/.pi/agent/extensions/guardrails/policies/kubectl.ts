@@ -1,7 +1,7 @@
 import { basename } from "node:path";
 import { findCommandInvocations } from "../command-parser.ts";
-import { loadKubectlGuardConfig, type KubectlInvocationConfig } from "../config.ts";
-import type { GuardrailPolicy } from "../policy.ts";
+import type { KubectlInvocationConfig } from "../config.ts";
+import { block, type GuardrailPolicy } from "../policy.ts";
 
 const GLOBAL_OPTIONS_WITH_VALUE = new Set([
   "--as",
@@ -103,27 +103,35 @@ function parseCommand(args: string[], invocation: KubectlInvocationConfig): Pars
 
 export const kubectlPolicy = {
   name: "kubectl",
-  async guidance() {
-    const { allowedCommands, invocations } = await loadKubectlGuardConfig();
+  async guidance({ config }) {
+    const { allowedCommands, invocations } = config.kubectl;
     if (invocations.length === 0) return;
     return `Kubectl guardrail: only run these commands through ${invocations.map(({ command }) => command).join(", ")}: ${allowedCommands.join(", ")}. All other kubectl commands are prohibited.`;
   },
-  async checkCommand(command) {
-    const { allowedCommands, invocations } = await loadKubectlGuardConfig();
+  async check(action, { config }) {
+    if (action.toolName !== "bash" || typeof action.input.command !== "string") return;
+    const { allowedCommands, invocations } = config.kubectl;
     const byCommand = new Map(
       invocations.map((invocation) => [basename(invocation.command), invocation]),
     );
     const allowed = new Set(allowedCommands);
 
-    for (const invocation of findCommandInvocations(command, new Set(byCommand.keys()))) {
+    for (const invocation of findCommandInvocations(
+      action.input.command,
+      new Set(byCommand.keys()),
+    )) {
       const configured = byCommand.get(invocation.command);
       if (!configured) continue;
       const parsed = parseCommand(invocation.args, configured);
       if (parsed.error) {
-        return `Blocked '${invocation.command}': unable to safely classify command (${parsed.error}).`;
+        return block(
+          `Blocked '${invocation.command}': unable to safely classify command (${parsed.error}).`,
+        );
       }
       if (!parsed.command || allowed.has(parsed.command)) continue;
-      return `Blocked Kubernetes command '${invocation.command} ${parsed.command}'. Allowed commands: ${allowedCommands.join(", ")}.`;
+      return block(
+        `Blocked Kubernetes command '${invocation.command} ${parsed.command}'. Allowed commands: ${allowedCommands.join(", ")}.`,
+      );
     }
   },
 } satisfies GuardrailPolicy;

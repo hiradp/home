@@ -1,7 +1,6 @@
 import { basename } from "node:path";
 import { findCommandInvocations } from "../command-parser.ts";
-import { loadBlockedCommandsConfig } from "../config.ts";
-import type { GuardrailPolicy } from "../policy.ts";
+import { block, type GuardrailPolicy } from "../policy.ts";
 
 const PACKAGE_RUNNERS = new Set(["bunx", "npm", "npx", "pnpm", "yarn"]);
 
@@ -14,29 +13,31 @@ function packageName(value: string): string {
   return name.split("@", 1)[0];
 }
 
-async function blockedCommands(): Promise<Set<string>> {
-  const { blockedCommands } = await loadBlockedCommandsConfig();
-  return new Set(blockedCommands.map((command) => basename(command)));
+function blockedCommands(configured: string[]): Set<string> {
+  return new Set(configured.map((command) => basename(command)));
 }
 
 export const blockedCommandsPolicy = {
   name: "blocked-commands",
-  async guidance() {
-    const blocked = await blockedCommands();
+  async guidance({ config }) {
+    const blocked = blockedCommands(config.commands.blockedCommands);
     if (blocked.size === 0) return;
     return `Command guardrail: never run these commands or invoke them through package runners: ${[...blocked].join(", ")}.`;
   },
-  async checkCommand(command) {
-    const blocked = await blockedCommands();
+  async check(action, { config }) {
+    if (action.toolName !== "bash" || typeof action.input.command !== "string") return;
+    const blocked = blockedCommands(config.commands.blockedCommands);
     if (blocked.size === 0) return;
 
-    const direct = findCommandInvocations(command, blocked)[0];
-    if (direct) return `Blocked command '${direct.command}' by guardrails configuration.`;
+    const direct = findCommandInvocations(action.input.command, blocked)[0];
+    if (direct) return block(`Blocked command '${direct.command}' by guardrails configuration.`);
 
-    for (const runner of findCommandInvocations(command, PACKAGE_RUNNERS)) {
+    for (const runner of findCommandInvocations(action.input.command, PACKAGE_RUNNERS)) {
       const nested = runner.args.find((argument) => blocked.has(packageName(argument)));
       if (nested) {
-        return `Blocked command '${packageName(nested)}' invoked through '${runner.command}'.`;
+        return block(
+          `Blocked command '${packageName(nested)}' invoked through '${runner.command}'.`,
+        );
       }
     }
   },
