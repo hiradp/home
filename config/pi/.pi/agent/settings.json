@@ -79,5 +79,6 @@
         "wait"
       ]
     }
-  }
+  },
+  "tuiMode": "fullscreen"
 }
