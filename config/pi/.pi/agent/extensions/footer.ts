@@ -1,10 +1,14 @@
 /**
  * Custom Footer - a pi port of the Claude statusline (lib/claude/statusline.sh).
  *
- * Layout: folder@branch ↑a ↓b (+x -y) | model · thinking | [bar] pct% / size | quotas | $cost
+ * Layout: folder@branch (#pr) ↑a ↓b (+x -y) | model · thinking | [bar] pct% / size | quotas | $cost
  *
  * - folder/branch, ahead/behind and working-tree diffstats come from git
  *   (spawned at most once per CACHE_TTL_MS; branch changes refresh immediately)
+ * - the current branch's pull request number and status come from `gh pr view`;
+ *   red means failed CI/changes requested, yellow means pending CI/review activity,
+ *   green means ready to merge, accent means merged, and dim means another state
+ *   (failed or unauthenticated lookups are silently omitted and misses are cached)
  * - worktrees display as "project⎇worktree" like the Claude version
  * - the context bar mirrors the statusline: 80% real -> 100% displayed, 10 cells
  * - session cost is summed from assistant message usage (same as the default footer)
@@ -20,6 +24,8 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 import { truncateToWidth } from "@earendil-works/pi-tui";
 
 const CACHE_TTL_MS = 2000;
+const PR_CACHE_TTL_MS = 60_000;
+const PR_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 interface GitInfo {
   /** Display name for the folder part, e.g. "home" or "home⎇feat-x" */
@@ -28,6 +34,14 @@ interface GitInfo {
   behind: number;
   added: number;
   deleted: number;
+}
+
+type PullRequestStatus = "failed" | "pending" | "ready" | "merged" | "other";
+
+interface PullRequestInfo {
+  branch: string;
+  number: number;
+  status: PullRequestStatus;
 }
 
 interface QuotaWindow {
@@ -102,6 +116,88 @@ function loadGitInfo(cwd: string): GitInfo | null {
 
 function invalidateGitCache(): void {
   cache = null;
+}
+
+function classifyPullRequest(data: Record<string, unknown>): PullRequestStatus {
+  if (data.state === "MERGED" || typeof data.mergedAt === "string") return "merged";
+  if (data.state !== "OPEN") return "other";
+
+  let hasFailedCheck = false;
+  let hasPendingCheck = false;
+  if (Array.isArray(data.statusCheckRollup)) {
+    for (const value of data.statusCheckRollup) {
+      const check = asRecord(value);
+      if (!check) continue;
+
+      const conclusion = typeof check.conclusion === "string" ? check.conclusion : "";
+      const state = typeof check.state === "string" ? check.state : "";
+      const status = typeof check.status === "string" ? check.status : "";
+      if (
+        [
+          "ACTION_REQUIRED",
+          "CANCELLED",
+          "ERROR",
+          "FAILURE",
+          "STALE",
+          "STARTUP_FAILURE",
+          "TIMED_OUT",
+        ].includes(conclusion || state)
+      ) {
+        hasFailedCheck = true;
+      }
+      if (
+        ["EXPECTED", "IN_PROGRESS", "PENDING", "QUEUED", "REQUESTED", "WAITING"].includes(
+          state || status,
+        )
+      ) {
+        hasPendingCheck = true;
+      }
+    }
+  }
+
+  if (hasFailedCheck || data.reviewDecision === "CHANGES_REQUESTED") return "failed";
+
+  const hasReviewComments =
+    Array.isArray(data.latestReviews) &&
+    data.latestReviews.some((value) => {
+      const review = asRecord(value);
+      return review?.state === "COMMENTED" || review?.state === "PENDING";
+    });
+  if (hasPendingCheck || data.reviewDecision === "REVIEW_REQUIRED" || hasReviewComments) {
+    return "pending";
+  }
+
+  return data.isDraft !== true && data.mergeStateStatus === "CLEAN" ? "ready" : "other";
+}
+
+async function loadPullRequest(
+  pi: ExtensionAPI,
+  cwd: string,
+  branch: string,
+  signal: AbortSignal,
+): Promise<PullRequestInfo | null> {
+  const result = await pi.exec(
+    "gh",
+    [
+      "pr",
+      "view",
+      branch,
+      "--json",
+      "number,state,mergedAt,isDraft,mergeStateStatus,reviewDecision,statusCheckRollup,latestReviews",
+    ],
+    {
+      cwd,
+      signal,
+      timeout: 10_000,
+    },
+  );
+  if (result.code !== 0) return null;
+
+  const data = asRecord(JSON.parse(result.stdout));
+  const number = data?.number;
+  return typeof number === "number" && Number.isSafeInteger(number) && number > 0 && data
+    ? { branch, number, status: classifyPullRequest(data) }
+    : null;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -223,22 +319,27 @@ function formatWindow(size: number): string {
 
 export default function (pi: ExtensionAPI) {
   let requestQuotaRefresh: (() => void) | undefined;
+  let requestPullRequestRefresh: (() => void) | undefined;
 
   pi.on("model_select", () => requestQuotaRefresh?.());
-  pi.on("agent_settled", () => requestQuotaRefresh?.());
+  pi.on("agent_settled", () => {
+    requestQuotaRefresh?.();
+    requestPullRequestRefresh?.();
+  });
 
   pi.on("session_start", (_event, ctx) => {
     if (ctx.mode !== "tui") return;
 
     ctx.ui.setFooter((tui, theme, footerData) => {
       let quota: ProviderQuota | null = null;
+      let pullRequest: PullRequestInfo | null = null;
       let quotaRequest = 0;
+      let pullRequestRequest = 0;
+      let pullRequestBranch: string | null = null;
+      let pullRequestCheckedAt = 0;
       let disposed = false;
       const quotaAbort = new AbortController();
-      const unsubscribe = footerData.onBranchChange(() => {
-        invalidateGitCache();
-        tui.requestRender();
-      });
+      const pullRequestAbort = new AbortController();
 
       const refreshQuota = () => {
         const provider = ctx.model?.provider;
@@ -260,17 +361,69 @@ export default function (pi: ExtensionAPI) {
             if (!disposed) tui.requestRender();
           });
       };
+
+      const refreshPullRequest = (force = false) => {
+        const branch = footerData.getGitBranch();
+        const now = Date.now();
+        if (!branch) {
+          pullRequest = null;
+          pullRequestBranch = null;
+          pullRequestCheckedAt = now;
+          tui.requestRender();
+          return;
+        }
+        if (
+          !force &&
+          pullRequestBranch === branch &&
+          now - pullRequestCheckedAt < PR_CACHE_TTL_MS
+        ) {
+          return;
+        }
+
+        const request = ++pullRequestRequest;
+        if (pullRequestBranch !== branch) pullRequest = null;
+        pullRequestBranch = branch;
+        pullRequestCheckedAt = now;
+        void loadPullRequest(pi, ctx.cwd, branch, pullRequestAbort.signal)
+          .then((next) => {
+            if (request === pullRequestRequest && footerData.getGitBranch() === branch) {
+              pullRequest = next;
+            }
+          })
+          .catch(() => {
+            if (request === pullRequestRequest && footerData.getGitBranch() === branch) {
+              pullRequest = null;
+            }
+          })
+          .finally(() => {
+            if (!disposed) tui.requestRender();
+          });
+      };
+
+      const unsubscribe = footerData.onBranchChange(() => {
+        invalidateGitCache();
+        refreshPullRequest(true);
+        tui.requestRender();
+      });
       requestQuotaRefresh = refreshQuota;
+      requestPullRequestRefresh = refreshPullRequest;
       const quotaTimer = setInterval(refreshQuota, 5 * 60 * 1000);
+      const pullRequestTimer = setInterval(() => refreshPullRequest(true), PR_REFRESH_INTERVAL_MS);
       refreshQuota();
+      refreshPullRequest(true);
 
       return {
         dispose() {
           disposed = true;
           unsubscribe();
           clearInterval(quotaTimer);
+          clearInterval(pullRequestTimer);
           quotaAbort.abort();
+          pullRequestAbort.abort();
           if (requestQuotaRefresh === refreshQuota) requestQuotaRefresh = undefined;
+          if (requestPullRequestRefresh === refreshPullRequest) {
+            requestPullRequestRefresh = undefined;
+          }
         },
         invalidate() {},
         render(width: number): string[] {
@@ -284,6 +437,19 @@ export default function (pi: ExtensionAPI) {
             let folder = git.dir;
             if (branch) {
               folder += theme.fg("dim", "@") + theme.fg("mdLink", branch);
+              if (pullRequest?.branch === branch) {
+                const color = {
+                  failed: "error",
+                  pending: "warning",
+                  ready: "success",
+                  merged: "accent",
+                  other: "dim",
+                } as const;
+                folder +=
+                  theme.fg("dim", " (") +
+                  theme.fg(color[pullRequest.status], `#${pullRequest.number}`) +
+                  theme.fg("dim", ")");
+              }
               const ab: string[] = [];
               if (git.ahead > 0) ab.push(theme.fg("success", `↑${git.ahead}`));
               if (git.behind > 0) ab.push(theme.fg("warning", `↓${git.behind}`));
