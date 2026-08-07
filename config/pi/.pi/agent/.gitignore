@@ -13,7 +13,7 @@
 
 !/skills/
 /skills/*
-!/skills/commit-management/
-!/skills/commit-management/SKILL.md
+!/skills/commit/
+!/skills/commit/SKILL.md
 !/skills/create-pr/
 !/skills/create-pr/SKILL.md

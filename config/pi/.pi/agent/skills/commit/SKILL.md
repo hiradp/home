@@ -1,9 +1,9 @@
 ---
-name: commit-management
+name: commit
 description: Inspect, organize, create, split, squash, or reword local Git commits while accounting for every repository change. Use when the user asks for commit management, focused commits, history cleanup, or help preparing local history.
 ---
 
-# Commit Management
+# Commit
 
 Create coherent local history without losing work, hiding remaining changes, or performing remote actions.
 
