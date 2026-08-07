@@ -30,12 +30,4 @@ Commands:
   help                  Show this help message
 ```
 
-## Development
-
-Pi extensions are checked with TypeScript, Oxlint, and Oxfmt:
-
-```bash
-just pi-install
-just pi-check
-just pi-format # apply formatting
-```
+Pi configuration is managed separately in [`pi-config`](https://github.com/hiradp/pi-config) and linked automatically by `home setup`.
