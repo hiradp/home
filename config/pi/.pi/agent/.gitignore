@@ -10,3 +10,10 @@
 
 !/extensions/
 /extensions/herdr-agent-state.ts
+
+!/skills/
+/skills/*
+!/skills/commit-management/
+!/skills/commit-management/SKILL.md
+!/skills/create-pr/
+!/skills/create-pr/SKILL.md
