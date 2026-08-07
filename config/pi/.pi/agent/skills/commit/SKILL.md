@@ -73,15 +73,33 @@ Before each commit:
 3. Confirm the staged content matches exactly one planned intent.
 4. Ensure no unrelated changes are staged.
 
-## Write repository-native messages
+## Commit Message Rules
 
+Write the message as a single short line. Target under 50 characters, hard max 72.
+
+Voice and tone:
+- Write like a human jotting a note, not an AI summarizing a diff
+- Lowercase unless a proper noun
+- No period at the end
+- Imperative mood ("fix crash" not "fixed crash" or "fixes crash")
+
+Content:
+- State what changed at a high level, not how
+- One line. No body, no bullet lists, no paragraphs
+- Only add a body (separated by blank line) if the change is genuinely complex AND the "why" isn't obvious from the diff — this should be rare
+- When a body is warranted, keep it to 1-3 short sentences. Never bullet lists.
+
+What to avoid:
+- Never list files or functions changed
+- Never describe every individual change
+- Never use filler like "various improvements" or "minor updates"
+- Never wrap the message in quotes when passing to git commit -m
+- Never add AI, robot, or coauthor trailers unless explicitly requested.
+- Never amend an existing commit
+
+Repository patterns:
 - Follow repository instructions and recent history rather than imposing one global format.
 - When the repository uses Conventional Commits, choose the narrowest accurate type and scope.
-- Use a concise imperative subject describing the outcome.
-- Add a body only when rationale, migration details, or non-obvious constraints matter.
-- Do not add AI, robot, or coauthor trailers unless explicitly requested.
-- Do not amend an existing commit unless the user asked for history editing or clearly approved that exact amendment.
-- Do not create empty commits unless explicitly requested.
 
 ## Validate the result
 
