@@ -10,6 +10,7 @@ prefix = "ctrl+a"
 previous_workspace = "alt+p"
 split_horizontal = 'prefix+"'
 split_vertical = 'prefix+%'
+switch_tab = "cmd+1..9"
 switch_workspace = "alt+1..9"
 
 [terminal]
