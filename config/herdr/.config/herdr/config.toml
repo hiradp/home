@@ -18,7 +18,9 @@ default_shell = "/opt/homebrew/bin/fish"
 new_cwd = "follow"
 
 [theme]
-auto_switch = false
+auto_switch = true
+dark_name = "gruvbox"
+light_name = "gruvbox-light"
 name = "gruvbox"
 
 [ui]
