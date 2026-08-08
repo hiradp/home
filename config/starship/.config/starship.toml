@@ -24,7 +24,7 @@ style = "bold red"
 [directory]
 format = '\[[$path]($style)[$read_only]($read_only_style)\]'
 style = "blue"
-truncation_length = 4
+truncation_length = 3
 truncation_symbol = "../"
 truncate_to_repo = false
 
