@@ -71,7 +71,7 @@ return {
         },
       },
       window = {
-        position = "left",
+        position = "right",
         mappings = {
           ["<bs>"] = "none",
           ["<space>"] = "none",
