@@ -26,6 +26,10 @@ end
 if status is-interactive
     # Commands to run in interactive sessions can go here
     atuin init fish | source
+
+    if type -q git-forest
+        git-forest completions fish | source
+    end
 end
 
 if test -f $WORK_DIR/config/fish/config.fish
