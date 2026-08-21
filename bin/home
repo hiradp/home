@@ -322,7 +322,7 @@ Examples:
   home install              Install all packages (and work, if present)
   home install essentials   Install only CLI tools
   home install casks        Install only GUI apps
-  home install langs        Install language runtimes (go, rust)
+  home install langs        Install language runtimes (go, rust, zig)
   home install tools        Install standalone tools (cursor)
   home upgrade              Upgrade brew + nvim, commit + push lazy-lock.json
   home link                 Link all config folders
