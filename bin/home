@@ -5,7 +5,7 @@ set -euo pipefail
 DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
 PI_CONFIG_DIR="${PI_CONFIG_DIR:-$HOME/Code/hiradp/pi-config}"
 PI_CONFIG_REPO="${PI_CONFIG_REPO:-git@github.com:hiradp/pi-config.git}"
-DEFAULT_FOLDERS="atuin claude codex fish ghostty git herdr nvim pi starship tmux yazi"
+DEFAULT_FOLDERS="atuin claude codex fish ghostty git herdr nvim pi starship tmux"
 
 # Source shared libraries
 source "$DOTFILES/lib/log.sh"
