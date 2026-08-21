@@ -1,35 +1,66 @@
 onboarding = false
 
-[experimental]
-pane_history = false
-switch_ascii_input_source_in_prefix = false
-
-[keys]
-next_workspace = "alt+n"
-prefix = "ctrl+a"
-previous_workspace = "alt+p"
-split_horizontal = 'prefix+"'
-split_vertical = 'prefix+%'
-switch_tab = "cmd+1..9"
-switch_workspace = "alt+1..9"
+[theme]
+name = "gruvbox"
+auto_switch = true
+dark_name = "gruvbox"
+light_name = "gruvbox-light"
 
 [terminal]
 default_shell = "/opt/homebrew/bin/fish"
 new_cwd = "follow"
 
-[theme]
-auto_switch = true
-dark_name = "gruvbox"
-light_name = "gruvbox-light"
-name = "gruvbox"
+[keys]
+prefix = "ctrl+a"
 
-[ui]
-agent_panel_sort = "spaces"
-prompt_new_tab_name = false
-show_agent_labels_on_pane_borders = true
+previous_workspace = "alt+p"
+next_workspace = "alt+n"
+switch_workspace = "prefix+shift+1..9"
 
-[ui.toast]
-delivery = "terminal"
+switch_tab = "prefix+1..9"
+focus_agent = "prefix+alt+1..9"
+
+split_vertical = 'prefix+%'
+split_horizontal = 'prefix+"'
+
+resize_pane_left = "ctrl+shift+alt+left"
+resize_pane_down = "ctrl+shift+alt+down"
+resize_pane_up = "ctrl+shift+alt+up"
+resize_pane_right = "ctrl+shift+alt+right"
+
+[[keys.command]]
+key = "prefix+alt+g"
+type = "popup"
+command = "lazygit"
+description = "run lazygit"
+width = "80%"
+height = "80%"
+
+[[keys.command]]
+key = "prefix+t"
+type = "popup"
+command = "fish"
+description = "open scratch terminal"
+width = "80%"
+height = "80%"
 
 [worktrees]
 directory = "~/Code/.worktrees"
+
+[ui]
+prompt_new_tab_name = false
+show_agent_labels_on_pane_borders = true
+
+agent_panel_sort = "spaces"
+status_indicators = "symbols"
+
+tab_bar_right = [{ type = "datetime", format = "· %F %I:%M:%S %P ·" }]
+
+[ui.sidebar.agents]
+rows = [["state_icon", "workspace", "tab", "agent"]]
+
+[ui.sidebar.spaces]
+rows = [["state_icon", "workspace"]]
+
+[ui.toast]
+delivery = "terminal"
