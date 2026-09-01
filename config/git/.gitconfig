@@ -37,3 +37,9 @@
   required = true
 [includeIf "gitdir:~/Code/planetscale/"]
   path = ~/Code/planetscale/config/git/.gitconfig
+[credential "https://origin.cursor.com/git"]
+	helper = 
+	helper = !/Users/hirad/.local/bin/origin credential-helper
+[credential "https://origin.cursor.com"]
+	helper = 
+	helper = !/Users/hirad/.local/bin/origin credential-helper
