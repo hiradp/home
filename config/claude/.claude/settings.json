@@ -5,6 +5,7 @@
   "permissions": {
     "defaultMode": "auto"
   },
+  "model": "fable[1m]",
   "hooks": {
     "SessionStart": [
       {
