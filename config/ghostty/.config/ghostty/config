@@ -45,5 +45,5 @@ keybind = super+9=unbind
 
 # Colors for my eyes
 background-blur = true
-background-opacity = 0.80
-theme = light:Rustic Light,dark:Builtin Pastel Dark
+background-opacity = 0.95
+theme = light:Rustic Light,dark:Plum Dark

@@ -1,10 +1,22 @@
 onboarding = false
 
 [theme]
-name = "gruvbox"
+name = "terminal"
 auto_switch = true
-dark_name = "gruvbox"
+dark_name = "terminal"
 light_name = "gruvbox-light"
+
+# ANSI colors follow Ghostty's Plum Dark / Rustic Light palettes.
+# Herdr 0.8.2 applies these overrides to both appearances.
+[theme.custom]
+accent = "magenta"
+active_row_bg = "reset"
+surface_dim = "black"
+overlay0 = "darkgray"
+overlay1 = "magenta"
+subtext0 = "darkgray"
+mauve = "magenta"
+green = "lightgreen"
 
 [terminal]
 default_shell = "/opt/homebrew/bin/fish"
