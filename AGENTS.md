@@ -4,7 +4,7 @@ This file provides guidance to coding agents working in this repository.
 
 ## What this repo is
 
-Personal dotfiles, managed by the `home` CLI in `bin/home`. Most of the repo is bash + GNU stow + Homebrew package lists. Coding agent configuration lives in the separate private `bots` repository; so far Pi and Claude have moved there, while Codex and herdr are still configured here.
+Personal dotfiles, managed by the `home` CLI in `bin/home`. Most of the repo is bash + GNU stow + Homebrew package lists. Coding agent configuration lives in the separate private `bots` repository; so far Pi, Claude, and Codex have moved there, while herdr is still configured here.
 
 ## Common commands
 
@@ -42,15 +42,9 @@ Claude Code's tracked config — `settings.json`, the statusline, and the global
 
 **Statusline** is `claude/statusline.sh` in `bots`, linked to `~/.claude/statusline.sh` and referenced by that path from the shared `settings.json`. Since both identities run the same script, it self-detects the identity from `$CLAUDE_CONFIG_DIR` and prints a trailing chip — `max` (purple) for the default, `enterprise` (blue) for `claude-ps` — so the active identity is always visible.
 
-### Codex config
-
-Portable Codex configuration is tracked under `config/codex/`. `home link codex` Stows authored files such as `hooks.json`, then merges `.codex/config.managed.toml` over the live `~/.codex/config.toml` with `yq`. The merge makes tracked keys authoritative while preserving Codex-generated project trust, plugin, desktop, marketplace, and hook-trust state.
-
-Do not commit the live `~/.codex/config.toml`: it contains machine-local paths and generated state. Add portable defaults to `config/codex/.codex/config.managed.toml`; add independently supported Codex files under `config/codex/` so Stow can link them.
-
 ### Bots (agent config)
 
-Agent configuration lives in the private `bots` repository, cloned to `$BOTS_DIR` (default `~/Code/hiradp/bots`) from `$BOTS_REPO`. It has its own `bin/bots` CLI, and this repo only chains to it, the same way it chains to `work`: `home setup` clones it and runs `bots setup`, the `bots` entry in `DEFAULT_FOLDERS` makes `home link` run `bots link`, and `home upgrade` runs `bots upgrade`. Pi's config (Stowed into `~/.pi/agent`) and Claude's config (see below) live there; keep their settings, extensions, skills, and development instructions in that repository. Codex and herdr are moving there next, so avoid growing their logic here.
+Agent configuration lives in the private `bots` repository, cloned to `$BOTS_DIR` (default `~/Code/hiradp/bots`) from `$BOTS_REPO`. It has its own `bin/bots` CLI, and this repo only chains to it, the same way it chains to `work`: `home setup` clones it and runs `bots setup`, the `bots` entry in `DEFAULT_FOLDERS` makes `home link` run `bots link`, and `home upgrade` runs `bots upgrade`. Pi's config (Stowed into `~/.pi/agent`), Claude's config (see below), and Codex's config (including the `config.managed.toml` merge into `~/.codex/config.toml`) live there; keep their settings, extensions, skills, and development instructions in that repository. herdr is moving there next, so avoid growing its logic here.
 
 ### Package lists
 
