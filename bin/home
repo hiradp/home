@@ -3,9 +3,9 @@
 set -euo pipefail
 
 DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
-PI_CONFIG_DIR="${PI_CONFIG_DIR:-$HOME/Code/hiradp/pi-config}"
-PI_CONFIG_REPO="${PI_CONFIG_REPO:-git@github.com:hiradp/pi-config.git}"
-DEFAULT_FOLDERS="atuin claude codex fish ghostty git herdr nvim pi starship tmux"
+BOTS_DIR="${BOTS_DIR:-$HOME/Code/hiradp/bots}"
+BOTS_REPO="${BOTS_REPO:-git@github.com:hiradp/bots.git}"
+DEFAULT_FOLDERS="atuin bots claude codex fish ghostty git herdr nvim starship tmux"
 
 # Source shared libraries
 source "$DOTFILES/lib/log.sh"
@@ -22,9 +22,9 @@ cmd_link() {
   for folder in $folders; do
     case "$folder" in
     codex) _prepare_codex_stow ;;
-    pi)
-      log_info "Linking pi..."
-      _link_pi_config
+    bots)
+      log_info "Linking bots..."
+      _run_bots link
       continue
       ;;
     esac
@@ -46,68 +46,6 @@ cmd_link() {
   esac
 
   log_ok "Linked"
-}
-
-_link_pi_config() {
-  if [[ ! -d "$PI_CONFIG_DIR/.git" ]]; then
-    log_error "Pi config repo not found: $PI_CONFIG_DIR"
-    log_info "Run home setup or set PI_CONFIG_DIR"
-    return 1
-  fi
-
-  local stow="/opt/homebrew/bin/stow"
-  local stow_dir
-  local package
-  stow_dir=$(dirname "$PI_CONFIG_DIR")
-  package=$(basename "$PI_CONFIG_DIR")
-
-  mkdir -p "$HOME/.pi/agent"
-  _remove_legacy_pi_links
-  $stow -d "$stow_dir" -D "$package" -t "$HOME/.pi/agent" 2>/dev/null || true
-  $stow -d "$stow_dir" "$package" -t "$HOME/.pi/agent"
-}
-
-# Remove links left by the old in-repo Pi Stow package. This handles dangling
-# links after upgrading across the repository split without touching runtime
-# files in ~/.pi/agent.
-_remove_legacy_pi_links() {
-  local legacy_root
-  local link
-  local target
-  legacy_root=$(_normalize_path "$DOTFILES/config/pi")
-
-  while IFS= read -r -d '' link; do
-    target=$(readlink "$link")
-    if [[ "$target" != /* ]]; then
-      target="$(dirname "$link")/$target"
-    fi
-    target=$(_normalize_path "$target")
-
-    case "$target" in
-    "$legacy_root" | "$legacy_root"/*) rm "$link" ;;
-    esac
-  done < <(find "$HOME/.pi/agent" -type l -print0)
-}
-
-_normalize_path() {
-  awk -v path="$1" 'BEGIN {
-    count = split(path, parts, "/")
-    depth = 0
-    for (i = 1; i <= count; i++) {
-      if (parts[i] == "" || parts[i] == ".") continue
-      if (parts[i] == "..") {
-        if (depth > 0) depth--
-      } else {
-        resolved[++depth] = parts[i]
-      }
-    }
-    if (depth == 0) {
-      print "/"
-      exit
-    }
-    for (i = 1; i <= depth; i++) printf "/%s", resolved[i]
-    print ""
-  }'
 }
 
 # Stow cannot replace a regular file on the first link. Remove the existing
@@ -219,11 +157,14 @@ cmd_setup() {
   log_section "Configuring remotes"
   _setup_remotes
 
-  log_section "Setting up Pi config"
-  _setup_pi_config
+  log_section "Cloning bots"
+  _setup_bots
 
   log_section "Installing brew packages"
   cmd_install
+
+  log_section "Setting up bots"
+  _run_bots setup
 
   log_section "Linking dotfiles"
   cmd_link
@@ -238,14 +179,9 @@ cmd_upgrade() {
   git -C "$DOTFILES" pull --ff-only
   log_ok "Up to date"
 
-  log_section "Pulling Pi config"
-  if [[ -d "$PI_CONFIG_DIR/.git" ]]; then
-    git -C "$PI_CONFIG_DIR" pull --ff-only
-    log_ok "Up to date"
-  else
-    _setup_pi_config
-  fi
-  _link_pi_config
+  log_section "Upgrading bots"
+  _setup_bots
+  _run_bots upgrade
 
   log_section "Upgrading brew packages"
   brew update
@@ -313,8 +249,8 @@ Commands:
 
 Environment:
   DOTFILES              Path to dotfiles repo (default: ~/Code/hiradp/home)
-  PI_CONFIG_DIR         Path to Pi config repo (default: ~/Code/hiradp/pi-config)
-  PI_CONFIG_REPO        Pi config clone URL (default: git@github.com:hiradp/pi-config.git)
+  BOTS_DIR              Path to agent config repo (default: ~/Code/hiradp/bots)
+  BOTS_REPO             Agent config clone URL (default: git@github.com:hiradp/bots.git)
   WORK_DIR              Path to work repo (default: ~/Code/planetscale)
 
 Examples:
@@ -383,19 +319,19 @@ EOF
   ssh-add --apple-use-keychain "$ssh_dir/id_ed25519" 2>/dev/null || true
 }
 
-_setup_pi_config() {
-  if [[ -d "$PI_CONFIG_DIR/.git" ]]; then
-    log_info "Repo exists at $PI_CONFIG_DIR"
+_setup_bots() {
+  if [[ -d "$BOTS_DIR/.git" ]]; then
+    log_info "Repo exists at $BOTS_DIR"
     return 0
   fi
-  if [[ -e "$PI_CONFIG_DIR" ]]; then
-    log_error "Pi config path exists but is not a Git repo: $PI_CONFIG_DIR"
+  if [[ -e "$BOTS_DIR" ]]; then
+    log_error "Bots path exists but is not a Git repo: $BOTS_DIR"
     return 1
   fi
 
-  mkdir -p "$(dirname "$PI_CONFIG_DIR")"
-  git clone "$PI_CONFIG_REPO" "$PI_CONFIG_DIR"
-  log_ok "Cloned to $PI_CONFIG_DIR"
+  mkdir -p "$(dirname "$BOTS_DIR")"
+  git clone "$BOTS_REPO" "$BOTS_DIR"
+  log_ok "Cloned to $BOTS_DIR"
 }
 
 _setup_remotes() {
@@ -445,6 +381,11 @@ _has_work() {
 
 _run_work() {
   "$(_work_bin)" "$@"
+}
+
+_run_bots() {
+  local bots_dir="$BOTS_DIR"
+  BOTS_DIR="$bots_dir" HOME_DIR="$DOTFILES" "$bots_dir/bin/bots" "$@"
 }
 
 # ------------------------------------------------------------------------------
