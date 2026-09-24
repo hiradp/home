@@ -21,7 +21,7 @@ Options:
 Managed layout:
   hiradp
     home        ~/Code/hiradp/home
-    pi-config   ~/Code/hiradp/pi-config
+    bots        ~/Code/hiradp/bots
     git-forest  ~/Code/hiradp/git-forest
   planetscale
     main        ~/Code/planetscale
@@ -57,14 +57,14 @@ command -v "$HERDR_BIN" >/dev/null 2>&1 || fail "herdr is not installed"
 command -v "$JQ_BIN" >/dev/null 2>&1 || fail "jq is not installed"
 
 HOME_DIR="$HOME/Code/hiradp/home"
-PI_CONFIG_DIR="$HOME/Code/hiradp/pi-config"
+BOTS_DIR="$HOME/Code/hiradp/bots"
 GIT_FOREST_DIR="$HOME/Code/hiradp/git-forest"
 PLANETSCALE_DIR="$HOME/Code/planetscale"
 PSPROBE_DIR="$HOME/Code/planetscale/lib/psprobe"
 
 for dir in \
   "$HOME_DIR" \
-  "$PI_CONFIG_DIR" \
+  "$BOTS_DIR" \
   "$GIT_FOREST_DIR" \
   "$PLANETSCALE_DIR" \
   "$PSPROBE_DIR"; do
@@ -188,7 +188,7 @@ fi
 
 hiradp_id=$(ensure_workspace hiradp "$HOME_DIR" home)
 home_tab_id=$(ensure_tab "$hiradp_id" home "$HOME_DIR")
-ensure_tab "$hiradp_id" pi-config "$PI_CONFIG_DIR" >/dev/null
+ensure_tab "$hiradp_id" bots "$BOTS_DIR" >/dev/null
 ensure_tab "$hiradp_id" git-forest "$GIT_FOREST_DIR" >/dev/null
 
 planetscale_id=$(ensure_workspace planetscale "$PLANETSCALE_DIR" main)
