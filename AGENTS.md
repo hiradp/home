@@ -4,7 +4,7 @@ This file provides guidance to coding agents working in this repository.
 
 ## What this repo is
 
-Personal dotfiles, managed by the `home` CLI in `bin/home`. Most of the repo is bash + GNU stow + Homebrew package lists. Coding agent configuration lives in the separate private `bots` repository; so far Pi has moved there, while Claude, Codex, and herdr are still configured here.
+Personal dotfiles, managed by the `home` CLI in `bin/home`. Most of the repo is bash + GNU stow + Homebrew package lists. Coding agent configuration lives in the separate private `bots` repository; so far Pi and Claude have moved there, while Codex and herdr are still configured here.
 
 ## Common commands
 
@@ -32,7 +32,7 @@ A few configs target `$HOME` directly rather than `~/.config` — check the dire
 
 ### Claude config (two identities)
 
-The **default** identity is tracked as `config/claude/.claude/` → `~/.claude`. Only the tracked bits are committed — `settings.json`, the `create-pr` skill under `skills/`, and the `.gitignore` that pins them; login, sessions, projects, and creds are runtime and stay out of the repo. A **second** identity lives in `~/.claude-ps`, reached via the `claude-ps` wrapper. Its login, sessions and history are separate, but its `settings.json` is symlinked to the default's tracked file — so **settings and statusline are identical across both**. See below.
+Claude Code's tracked config — `settings.json`, the statusline, and the global `CLAUDE.md` — lives in the `bots` repo under `claude/`, which `bots link claude` Stows into `~/.claude` for the **default** identity. A **second** identity lives in `~/.claude-ps`, reached via the `claude-ps` wrapper, which stays in this repo because it is shell config. Its login, sessions and history are separate, but `bots link claude` also symlinks its `settings.json` and `CLAUDE.md` to the same tracked files — so **settings and statusline are identical across both**. See below.
 
 **Why the default leaves `CLAUDE_CONFIG_DIR` unset (important):** on macOS the login is stored in the Keychain, keyed per config dir — the unset default gets the plain `Claude Code-credentials` item, while an explicit `CLAUDE_CONFIG_DIR` gets a *suffixed* one. So the default `claude` must run with `CLAUDE_CONFIG_DIR` **unset** (it resolves `~/.claude` plus the home-level `~/.claude.json`); pointing it at an explicit dir would hit a different Keychain item and force a re-login. `claude.fish` leaves it alone on purpose.
 
@@ -40,7 +40,7 @@ The **default** identity is tracked as `config/claude/.claude/` → `~/.claude`.
 - `claude.fish` — the default identity. Leaves `CLAUDE_CONFIG_DIR` unset (see above) and only forces `--effort=max`.
 - `claude-ps.fish` — a second identity. Sets `CLAUDE_CONFIG_DIR=~/.claude-ps` (function-scoped, so it never leaks into the shell) and also forces `--effort=max`. The explicit dir gives it its own *suffixed* Keychain login, separate from the default — that separation is the entire point. `home link` symlinks `~/.claude-ps/settings.json` → the tracked `settings.json`, so settings + statusline stay identical to the default; only login, sessions and history diverge. Claude prompts a one-time login on the first `claude-ps` run.
 
-**Statusline** is `lib/claude/statusline.sh`, referenced by absolute path from the shared `settings.json`. Since both identities run the same script, it self-detects the identity from `$CLAUDE_CONFIG_DIR` and prints a trailing chip — `max` (purple) for the default, `enterprise` (blue) for `claude-ps` — so the active identity is always visible.
+**Statusline** is `claude/statusline.sh` in `bots`, linked to `~/.claude/statusline.sh` and referenced by that path from the shared `settings.json`. Since both identities run the same script, it self-detects the identity from `$CLAUDE_CONFIG_DIR` and prints a trailing chip — `max` (purple) for the default, `enterprise` (blue) for `claude-ps` — so the active identity is always visible.
 
 ### Codex config
 
@@ -50,7 +50,7 @@ Do not commit the live `~/.codex/config.toml`: it contains machine-local paths a
 
 ### Bots (agent config)
 
-Agent configuration lives in the private `bots` repository, cloned to `$BOTS_DIR` (default `~/Code/hiradp/bots`) from `$BOTS_REPO`. It has its own `bin/bots` CLI, and this repo only chains to it, the same way it chains to `work`: `home setup` clones it and runs `bots setup`, the `bots` entry in `DEFAULT_FOLDERS` makes `home link` run `bots link`, and `home upgrade` runs `bots upgrade`. Pi's config (Stowed into `~/.pi/agent`) lives there; keep Pi settings, extensions, skills, and their development instructions in that repository. Claude, Codex, and herdr are moving there next, so avoid growing their logic here.
+Agent configuration lives in the private `bots` repository, cloned to `$BOTS_DIR` (default `~/Code/hiradp/bots`) from `$BOTS_REPO`. It has its own `bin/bots` CLI, and this repo only chains to it, the same way it chains to `work`: `home setup` clones it and runs `bots setup`, the `bots` entry in `DEFAULT_FOLDERS` makes `home link` run `bots link`, and `home upgrade` runs `bots upgrade`. Pi's config (Stowed into `~/.pi/agent`) and Claude's config (see below) live there; keep their settings, extensions, skills, and development instructions in that repository. Codex and herdr are moving there next, so avoid growing their logic here.
 
 ### Package lists
 

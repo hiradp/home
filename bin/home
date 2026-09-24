@@ -5,7 +5,7 @@ set -euo pipefail
 DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
 BOTS_DIR="${BOTS_DIR:-$HOME/Code/hiradp/bots}"
 BOTS_REPO="${BOTS_REPO:-git@github.com:hiradp/bots.git}"
-DEFAULT_FOLDERS="atuin bots claude codex fish ghostty git herdr nvim starship tmux"
+DEFAULT_FOLDERS="atuin bots codex fish ghostty git herdr nvim starship tmux"
 
 # Source shared libraries
 source "$DOTFILES/lib/log.sh"
@@ -34,13 +34,6 @@ cmd_link() {
     $stow -d "$DOTFILES/config" "$folder" -t "$HOME"
   done
 
-  # The second Claude identity (`claude-ps` → ~/.claude-ps) shares the tracked
-  # settings.json so its settings + statusline match the default ~/.claude. stow
-  # can't place this (different target dir that also holds runtime state), so link
-  # the one file by hand — idempotently.
-  case " $folders " in
-    *" claude "*) _link_claude_ps_settings ;;
-  esac
   case " $folders " in
     *" codex "*) _merge_codex_config ;;
   esac
@@ -97,15 +90,6 @@ _merge_codex_config() {
   chmod 600 "$tmp"
   mv "$tmp" "$live"
   log_info "Merged managed Codex settings → ~/.codex/config.toml"
-}
-
-# Point ~/.claude-ps/settings.json at the tracked settings.json so the `claude-ps`
-# identity shares the default identity's settings and statusline.
-_link_claude_ps_settings() {
-  local src="$DOTFILES/config/claude/.claude/settings.json"
-  mkdir -p "$HOME/.claude-ps"
-  ln -sfn "$src" "$HOME/.claude-ps/settings.json"
-  log_info "Shared settings → ~/.claude-ps/settings.json"
 }
 
 cmd_install() {
