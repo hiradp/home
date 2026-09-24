@@ -4,7 +4,7 @@ This file provides guidance to coding agents working in this repository.
 
 ## What this repo is
 
-Personal dotfiles, managed by the `home` CLI in `bin/home`. Most of the repo is bash + GNU stow + Homebrew package lists. Coding agent configuration lives in the separate private `bots` repository; so far Pi, Claude, and Codex have moved there, while herdr is still configured here.
+Personal dotfiles, managed by the `home` CLI in `bin/home`. Most of the repo is bash + GNU stow + Homebrew package lists. Coding agent configuration (Pi, Claude, Codex, herdr) lives in the separate private `bots` repository.
 
 ## Common commands
 
@@ -44,7 +44,7 @@ Claude Code's tracked config — `settings.json`, the statusline, and the global
 
 ### Bots (agent config)
 
-Agent configuration lives in the private `bots` repository, cloned to `$BOTS_DIR` (default `~/Code/hiradp/bots`) from `$BOTS_REPO`. It has its own `bin/bots` CLI, and this repo only chains to it, the same way it chains to `work`: `home setup` clones it and runs `bots setup`, the `bots` entry in `DEFAULT_FOLDERS` makes `home link` run `bots link`, and `home upgrade` runs `bots upgrade`. Pi's config (Stowed into `~/.pi/agent`), Claude's config (see below), and Codex's config (including the `config.managed.toml` merge into `~/.codex/config.toml`) live there; keep their settings, extensions, skills, and development instructions in that repository. herdr is moving there next, so avoid growing its logic here.
+Agent configuration lives in the private `bots` repository, cloned to `$BOTS_DIR` (default `~/Code/hiradp/bots`) from `$BOTS_REPO`. It has its own `bin/bots` CLI, and this repo only chains to it, the same way it chains to `work`: `home setup` clones it and runs `bots setup`, the `bots` entry in `DEFAULT_FOLDERS` makes `home link` run `bots link`, and `home upgrade` runs `bots upgrade`. Pi's config (Stowed into `~/.pi/agent`), Claude's config (see below), Codex's config (including the `config.managed.toml` merge into `~/.codex/config.toml`), herdr's `config.toml`, and the skills shared across those agents live there; keep agent settings, extensions, skills, and their linking logic in that repository. This repo keeps only what is not agent config: Homebrew packages (including `herdr`), the `claude-ps` fish wrapper, and `bin/h`, the herdr workspace launcher.
 
 ### Package lists
 
