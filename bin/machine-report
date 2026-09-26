@@ -1,0 +1,365 @@
+#!/usr/bin/env bash
+# TR-100 Machine Report, adapted for macOS.
+# Upstream: https://github.com/usgraphics/usgc-machine-report
+#
+# Copyright (c) 2024, U.S. Graphics, LLC. BSD-3-Clause License.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its
+#    contributors may be used to endorse or promote products derived from
+#    this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+set -euo pipefail
+
+# Global variables
+MIN_NAME_LEN=5
+MAX_NAME_LEN=13
+
+MIN_DATA_LEN=20
+MAX_DATA_LEN=32
+
+BORDERS_AND_PADDING=7
+
+# Basic configuration, change as needed
+report_title="$(hostname -s | tr '[:lower:]' '[:upper:]')"
+last_login_ip_present=0
+last_login_ip=""
+
+# Utilities
+max_length() {
+    local max_len=0
+    local len
+
+    for str in "$@"; do
+        len=${#str}
+        if (( len > max_len )); then
+            max_len=$len
+        fi
+    done
+
+    if [ $max_len -lt $MAX_DATA_LEN ]; then
+        printf '%s' "$max_len"
+    else
+        printf '%s' "$MAX_DATA_LEN"
+    fi
+}
+
+# All data strings must go here
+set_current_len() {
+    CURRENT_LEN=$(max_length                                     \
+        "$report_title"                                          \
+        "$os_name"                                               \
+        "$os_kernel"                                             \
+        "$net_hostname"                                          \
+        "$net_machine_ip"                                        \
+        "$net_client_ip"                                         \
+        "$net_current_user"                                      \
+        "$cpu_model"                                             \
+        "$cpu_cores_desc"                                        \
+        "$cpu_hypervisor"                                        \
+        "$cpu_freq GHz"                                          \
+        "$root_used_gb/$root_total_gb GB [$disk_percent%]"       \
+        "${mem_used_gb}/${mem_total_gb} GiB [${mem_percent}%]"   \
+        "$last_login_time"                                       \
+        "$last_login_ip"                                         \
+        "$sys_uptime"                                            \
+    )
+}
+
+PRINT_HEADER() {
+    local length=$((CURRENT_LEN+MAX_NAME_LEN+BORDERS_AND_PADDING))
+
+    local top="┌"
+    local bottom="├"
+    for (( i = 0; i < length - 2; i++ )); do
+        top+="┬"
+        bottom+="┴"
+    done
+    top+="┐"
+    bottom+="┤"
+
+    printf '%s\n' "$top"
+    printf '%s\n' "$bottom"
+}
+
+PRINT_CENTERED_DATA() {
+    local max_len=$((CURRENT_LEN+MAX_NAME_LEN-BORDERS_AND_PADDING))
+    local text="$1"
+    local total_width=$((max_len + 12))
+
+    local text_len=${#text}
+    local padding_left=$(( (total_width - text_len) / 2 ))
+    local padding_right=$(( total_width - text_len - padding_left ))
+
+    printf "│%${padding_left}s%s%${padding_right}s│\n" "" "$text" ""
+}
+
+PRINT_DIVIDER() {
+    # either "top" or "bottom", no argument means middle divider
+    local side="${1:-}"
+    case "$side" in
+        "top")
+            local left_symbol="├"
+            local middle_symbol="┬"
+            local right_symbol="┤"
+            ;;
+        "bottom")
+            local left_symbol="└"
+            local middle_symbol="┴"
+            local right_symbol="┘"
+            ;;
+        *)
+            local left_symbol="├"
+            local middle_symbol="┼"
+            local right_symbol="┤"
+    esac
+
+    local length=$((CURRENT_LEN+MAX_NAME_LEN+BORDERS_AND_PADDING))
+    local divider="$left_symbol"
+    for (( i = 0; i < length - 3; i++ )); do
+        divider+="─"
+        if [ "$i" -eq 14 ]; then
+            divider+="$middle_symbol"
+        fi
+    done
+    divider+="$right_symbol"
+    printf '%s\n' "$divider"
+}
+
+PRINT_DATA() {
+    local name="$1"
+    local data="$2"
+    local max_data_len=$CURRENT_LEN
+
+    # Pad name
+    local name_len=${#name}
+    if (( name_len < MIN_NAME_LEN )); then
+        name=$(printf "%-${MIN_NAME_LEN}s" "$name")
+    elif (( name_len > MAX_NAME_LEN )); then
+        name=$(echo "$name" | cut -c 1-$((MAX_NAME_LEN-3)))...
+    else
+        name=$(printf "%-${MAX_NAME_LEN}s" "$name")
+    fi
+
+    # Truncate or pad data
+    local data_len=${#data}
+    if (( data_len >= MAX_DATA_LEN || data_len == MAX_DATA_LEN-1 )); then
+        data=$(echo "$data" | cut -c 1-$((MAX_DATA_LEN-3-2)))...
+    else
+        data=$(printf "%-${max_data_len}s" "$data")
+    fi
+
+    printf "│ %-${MAX_NAME_LEN}s │ %s │\n" "$name" "$data"
+}
+
+bar_graph() {
+    local percent
+    local num_blocks
+    local width=$CURRENT_LEN
+    local graph=""
+    local used=$1
+    local total=$2
+
+    if (( total == 0 )); then
+        percent=0
+    else
+        percent=$(awk -v used="$used" -v total="$total" 'BEGIN { printf "%.2f", (used / total) * 100 }')
+    fi
+
+    num_blocks=$(awk -v percent="$percent" -v width="$width" 'BEGIN { printf "%d", (percent / 100) * width }')
+    if (( num_blocks > width )); then
+        num_blocks=$width
+    fi
+
+    for (( i = 0; i < num_blocks; i++ )); do
+        graph+="█"
+    done
+    for (( i = num_blocks; i < width; i++ )); do
+        graph+="░"
+    done
+    printf "%s" "${graph}"
+}
+
+get_ip_addr() {
+    local iface
+    local ip_address=""
+
+    # Address of the interface that carries the default route
+    iface=$(route -n get default 2>/dev/null | awk '/interface:/ {print $2}') || true
+    if [ -n "$iface" ]; then
+        ip_address=$(ipconfig getifaddr "$iface" 2>/dev/null) ||
+            ip_address=$(ifconfig "$iface" 2>/dev/null | awk '/inet / {print $2}' | head -n 1) || true
+    fi
+
+    printf '%s' "${ip_address:-No IP found}"
+}
+
+sysctl_value() {
+    sysctl -n "$1" 2>/dev/null || true
+}
+
+# Operating System Information
+os_name="$(sw_vers -productName) $(sw_vers -productVersion) ($(sw_vers -buildVersion))"
+os_kernel="$(uname -sr)"
+
+# Network Information
+net_current_user=$(whoami)
+net_hostname=$(hostname -f 2>/dev/null) || net_hostname=$(hostname)
+if [ -z "$net_hostname" ]; then net_hostname="Not Defined"; fi
+
+net_machine_ip=$(get_ip_addr)
+net_client_ip="${SSH_CLIENT:-}"
+net_client_ip="${net_client_ip%% *}"
+if [ -z "$net_client_ip" ]; then
+    net_client_ip="Not connected"
+fi
+net_dns_ip=()
+while read -r dns_ip; do
+    net_dns_ip+=("$dns_ip")
+done < <(awk '/^nameserver [0-9.]+$/ {print $2}' /etc/resolv.conf 2>/dev/null)
+
+# CPU Information
+cpu_model="$(sysctl_value machdep.cpu.brand_string)"
+if [ "$(sysctl_value kern.hv_vmm_present)" = "1" ]; then
+    cpu_hypervisor="Virtual Machine"
+else
+    cpu_hypervisor="Bare Metal"
+fi
+
+cpu_cores="$(sysctl_value hw.ncpu)"
+cpu_perf_cores="$(sysctl_value hw.perflevel0.physicalcpu)"
+cpu_eff_cores="$(sysctl_value hw.perflevel1.physicalcpu)"
+if [ -n "$cpu_perf_cores" ] && [ -n "$cpu_eff_cores" ]; then
+    cpu_cores_desc="$cpu_cores Cores (${cpu_perf_cores}P + ${cpu_eff_cores}E)"
+else
+    cpu_cores_desc="$cpu_cores Cores / $(sysctl_value hw.packages) Socket(s)"
+fi
+# Apple Silicon does not expose a clock speed, so the row is skipped there
+cpu_freq="$(sysctl_value hw.cpufrequency | awk '{ if ($1) printf "%.2f", $1 / 1000000000 }')"
+
+read -r _ load_avg_1min load_avg_5min load_avg_15min _ <<< "$(sysctl_value vm.loadavg)"
+
+# Memory Information
+# Matches Activity Monitor's "Memory Used": app memory + wired + compressed
+mem_total=$(sysctl_value hw.memsize)
+mem_used=$(vm_stat | awk '
+    /page size of/              { page_size = $8 }
+    /^Anonymous pages/          { anon = $3 }
+    /^Pages purgeable/          { purgeable = $3 }
+    /^Pages wired down/         { wired = $4 }
+    /^Pages occupied by compressor/ { compressed = $5 }
+    END { printf "%d", (anon - purgeable + wired + compressed) * page_size }')
+mem_percent=$(awk -v used="$mem_used" -v total="$mem_total" 'BEGIN { printf "%.2f", (used / total) * 100 }')
+mem_total_gb=$(awk -v total="$mem_total" 'BEGIN { printf "%.2f", total / (1024 * 1024 * 1024) }') # (From bytes to Gi units)
+mem_used_gb=$(awk -v used="$mem_used" 'BEGIN { printf "%.2f", used / (1024 * 1024 * 1024) }')
+
+# Disk Information
+# "/" is the sealed system snapshot; user data lives on the Data volume. All
+# APFS volumes share one container, so used space is container size minus free.
+root_partition="/System/Volumes/Data"
+if [ ! -d "$root_partition" ]; then root_partition="/"; fi
+root_total=$(df -k "$root_partition" | awk 'NR==2 {print $2}')
+root_used=$(df -k "$root_partition" | awk 'NR==2 {print $2 - $4}')
+root_total_gb=$(awk -v total="$root_total" 'BEGIN { printf "%.2f", total / (1024 * 1024) }')
+root_used_gb=$(awk -v used="$root_used" 'BEGIN { printf "%.2f", used / (1024 * 1024) }')
+disk_percent=$(awk -v used="$root_used" -v total="$root_total" 'BEGIN { printf "%.2f", (used / total) * 100 }')
+
+# Last login and Uptime
+# Most recent login on a terminal other than this one
+current_tty=$(tty 2>/dev/null) || true
+last_login=$(last -50 "$net_current_user" 2>/dev/null | awk -v tty="${current_tty#/dev/}" '
+    $1 != "" && $2 != tty && !found { found = 1; print }') || true
+last_login_ip=$(echo "$last_login" | awk '{print $3}')
+
+# Check if last_login_ip is an IP address
+if [[ "$last_login_ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    last_login_ip_present=1
+    last_login_time=$(echo "$last_login" | awk '{print $4, $5, $6, $7}')
+else
+    last_login_ip=""
+    last_login_time=$(echo "$last_login" | awk '{print $3, $4, $5, $6}')
+fi
+if [ -z "${last_login_time// /}" ]; then
+    last_login_time="Never logged in"
+fi
+
+boot_time=$(sysctl_value kern.boottime | awk -F'[ ,]+' '{print $4}')
+uptime_secs=$(( $(date +%s) - boot_time ))
+sys_uptime="$(( uptime_secs / 86400 ))d $(( uptime_secs % 86400 / 3600 ))h $(( uptime_secs % 3600 / 60 ))m"
+
+# Set current length before graphs get calculated
+set_current_len
+
+# Create graphs
+cpu_1min_bar_graph=$(bar_graph "$load_avg_1min" "$cpu_cores")
+cpu_5min_bar_graph=$(bar_graph "$load_avg_5min" "$cpu_cores")
+cpu_15min_bar_graph=$(bar_graph "$load_avg_15min" "$cpu_cores")
+
+mem_bar_graph=$(bar_graph "$mem_used" "$mem_total")
+
+disk_bar_graph=$(bar_graph "$root_used" "$root_total")
+
+# Machine Report
+PRINT_HEADER
+PRINT_CENTERED_DATA "$report_title"
+PRINT_CENTERED_DATA "TR-100 MACHINE REPORT"
+PRINT_DIVIDER "top"
+PRINT_DATA "OS" "$os_name"
+PRINT_DATA "KERNEL" "$os_kernel"
+PRINT_DIVIDER
+PRINT_DATA "HOSTNAME" "$net_hostname"
+PRINT_DATA "MACHINE IP" "$net_machine_ip"
+PRINT_DATA "CLIENT  IP" "$net_client_ip"
+
+for dns_num in "${!net_dns_ip[@]}"; do
+    PRINT_DATA "DNS  IP $(($dns_num + 1))" "${net_dns_ip[dns_num]}"
+done
+
+PRINT_DATA "USER" "$net_current_user"
+PRINT_DIVIDER
+PRINT_DATA "PROCESSOR" "$cpu_model"
+PRINT_DATA "CORES" "$cpu_cores_desc"
+PRINT_DATA "HYPERVISOR" "$cpu_hypervisor"
+
+if [ -n "$cpu_freq" ]; then
+    PRINT_DATA "CPU FREQ" "$cpu_freq GHz"
+fi
+
+PRINT_DATA "LOAD  1m" "$cpu_1min_bar_graph"
+PRINT_DATA "LOAD  5m" "$cpu_5min_bar_graph"
+PRINT_DATA "LOAD 15m" "$cpu_15min_bar_graph"
+PRINT_DIVIDER
+PRINT_DATA "VOLUME" "$root_used_gb/$root_total_gb GB [$disk_percent%]"
+PRINT_DATA "DISK USAGE" "$disk_bar_graph"
+PRINT_DIVIDER
+PRINT_DATA "MEMORY" "${mem_used_gb}/${mem_total_gb} GiB [${mem_percent}%]"
+PRINT_DATA "USAGE" "${mem_bar_graph}"
+PRINT_DIVIDER
+PRINT_DATA "LAST LOGIN" "$last_login_time"
+
+if [ $last_login_ip_present -eq 1 ]; then
+    PRINT_DATA "" "$last_login_ip"
+fi
+
+PRINT_DATA "UPTIME" "$sys_uptime"
+PRINT_DIVIDER "bottom"
