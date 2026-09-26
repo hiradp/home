@@ -46,4 +46,4 @@ keybind = super+9=unbind
 # Colors for my eyes
 background-blur = true
 background-opacity = 0.95
-theme = light:Rustic Light,dark:Plum Dark
+theme = light:USGC-HIGHK,dark:USGC-RETICLE

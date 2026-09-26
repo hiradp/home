@@ -1,0 +1,24 @@
+# USGC EPITAXY, from U.S. Graphics Company's USGC themes.
+# Copyright (c) 2025, U.S. Graphics Company (US GRAPHICS LLC). BSD 3-Clause, see ../USGC-LICENSE.
+palette = 0=#262626
+palette = 1=#e00000
+palette = 2=#ffc200
+palette = 3=#ffc200
+palette = 4=#723df9
+palette = 5=#ff208f
+palette = 6=#0079ff
+palette = 7=#ffffff
+palette = 8=#494747
+palette = 9=#e00000
+palette = 10=#f4ba00
+palette = 11=#ffc200
+palette = 12=#ff7321
+palette = 13=#ff208f
+palette = 14=#0078ff
+palette = 15=#fefeff
+background = #000000
+foreground = #ff00ff
+cursor-color = #ffffff
+cursor-text = #000000
+selection-background = #000066
+selection-foreground = #ffff00
