@@ -12,29 +12,29 @@ add_newline = true
 disabled = false
 time_format = "%Y-%m-%d %H:%M:%S"
 utc_time_offset = "0"
-format = '\[[$time UTC]($style)\]'
-style = "bright-black"
+format = '❬[$time UTC]($style)❭'
+style = "white"
 
 [hostname]
 disabled = false
 ssh_only = true
-format = '\[[$hostname]($style)\]'
+format = '❬[$hostname]($style)❭'
 style = "bold red"
 
 [directory]
-format = '\[[$path]($style)[$read_only]($read_only_style)\]'
-style = "purple"
+format = '❬[$path]($style)[$read_only]($read_only_style)❭'
+style = "green"
 truncation_length = 3
 truncation_symbol = "../"
 truncate_to_repo = false
 
 [git_branch]
-format = '\[[$branch]($style)'
-style = "cyan"
+format = '❬[$branch]($style)'
+style = "white"
 
 [git_status]
-format = '[($all_status$ahead_behind)]($style)\]'
-style = "yellow"
+format = '[($all_status$ahead_behind)]($style)❭'
+style = "red"
 conflicted = "!"
 ahead = "^"
 behind = "v"
@@ -47,5 +47,5 @@ renamed = ">"
 deleted = "x"
 
 [character]
-success_symbol = '[\$](bold bright-green)'
-error_symbol = '[\$](bold bright-red)'
+success_symbol = '[●](green)'
+error_symbol = '[●](red)'
