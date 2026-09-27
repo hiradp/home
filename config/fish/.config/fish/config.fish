@@ -5,12 +5,14 @@ set -U fish_greeting
 
 # set project directory
 set -x HOME_DIR $HOME/Code/hiradp/home
+set -x BOTS_DIR $HOME/Code/hiradp/bots
 set -x NOTES_DIR "$HOME/Library/Mobile Documents/com~apple~CloudDocs/Obsidian/Notes"
 set -x WORK_DIR $HOME/Code/planetscale
 
 # Set local bin
 set -x PATH $PATH $HOME/.local/bin
 set -x PATH $PATH $HOME_DIR/bin
+set -x PATH $PATH $BOTS_DIR/bin
 
 # Allow for subdirs in ./functions/
 set -x fish_function_path ~/.config/fish/functions/*/ $fish_function_path
