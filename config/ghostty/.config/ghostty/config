@@ -5,6 +5,7 @@ confirm-close-surface = false
 shell-integration = fish
 
 # Font settings
+font-family = "Berkeley Mono"
 font-family = "SF Mono"
 font-size = 10
 adjust-cell-height = 20%
