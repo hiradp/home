@@ -7,8 +7,13 @@ shell-integration = fish
 # Font settings
 font-family = "Berkeley Mono"
 font-family = "SF Mono"
-font-size = 10
+font-size = 11
 adjust-cell-height = 20%
+# Berkeley Mono alternates: dotted zero, crossed 7, alternate r, broken bar.
+font-feature = ss02
+font-feature = ss04
+font-feature = ss05
+font-feature = ss06
 
 # Window Settings
 cursor-click-to-move = true
