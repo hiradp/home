@@ -13,7 +13,7 @@ disabled = false
 time_format = "%Y-%m-%d %H:%M:%S"
 utc_time_offset = "0"
 format = '❬[$time UTC]($style)❭'
-style = "white"
+style = "yellow"
 
 [hostname]
 disabled = false
@@ -23,14 +23,14 @@ style = "bold red"
 
 [directory]
 format = '❬[$path]($style)[$read_only]($read_only_style)❭'
-style = "green"
+style = "blue"
 truncation_length = 3
 truncation_symbol = "../"
 truncate_to_repo = false
 
 [git_branch]
 format = '❬[$branch]($style)'
-style = "white"
+style = "purple"
 
 [git_status]
 format = '[($all_status$ahead_behind)]($style)❭'
