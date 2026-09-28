@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+#
+# desk - open the default Herdr sessions, one Ghostty window each
+#
+# Idempotent: creates whatever sessions and workspaces are missing, opens a
+# Ghostty window for each session that has no attached client, and leaves
+# everything that already exists alone.
+
+set -euo pipefail
+
+DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
+source "$DOTFILES/lib/log.sh"
+
+# session|Ghostty window title
+SESSIONS=(
+  "hiradp|🔥 hiradp"
+  "planetscale|🪐 PlanetScale"
+)
+
+# session|workspace label|directory
+WORKSPACES=(
+  "hiradp|🏡 home|$HOME/Code/hiradp/home"
+  "hiradp|🤖 bots|$HOME/Code/hiradp/bots"
+  "hiradp|🌲 git-forest|$HOME/Code/hiradp/git-forest"
+  "planetscale|🪐 planetscale|$HOME/Code/planetscale"
+  "planetscale|🕵️‍♀️ psprobe|$HOME/Code/planetscale/lib/psprobe"
+)
+
+usage() {
+  cat <<'EOF'
+desk - open the default Herdr sessions, one Ghostty window each
+
+Usage: desk
+
+Creates missing sessions and workspaces, then opens a Ghostty window for
+each session that isn't already attached. Safe to run at any time.
+EOF
+}
+
+fail() {
+  log_error "desk: $*"
+  exit 1
+}
+
+case "${1:-}" in
+"") ;;
+-h | --help)
+  usage
+  exit 0
+  ;;
+*)
+  usage >&2
+  fail "unknown argument: $1"
+  ;;
+esac
+
+command -v herdr >/dev/null 2>&1 || fail "herdr is not installed"
+command -v jq >/dev/null 2>&1 || fail "jq is not installed"
+[[ -d /Applications/Ghostty.app ]] || fail "Ghostty is not installed"
+
+session_running() {
+  herdr session list --json |
+    jq -e --arg name "$1" '.sessions[] | select(.name == $name and .running)' >/dev/null
+}
+
+ensure_session() {
+  local session=$1
+
+  session_running "$session" && return
+
+  nohup herdr --session "$session" server >/dev/null 2>&1 &
+  for _ in {1..50}; do
+    session_running "$session" && {
+      log_ok "started session $session"
+      return
+    }
+    sleep 0.1
+  done
+
+  fail "session $session did not start"
+}
+
+ensure_workspace() {
+  local session=$1 label=$2 dir=$3
+  local count
+
+  [[ -d "$dir" ]] || fail "directory not found: $dir"
+
+  count=$(herdr --session "$session" workspace list |
+    jq --arg label "$label" '[.result.workspaces[] | select(.label == $label)] | length')
+
+  ((count > 1)) && fail "multiple '$label' workspaces in session $session"
+  ((count == 1)) && return
+
+  herdr --session "$session" workspace create \
+    --label "$label" --cwd "$dir" --no-focus >/dev/null
+  log_ok "created $label in $session"
+}
+
+session_attached() {
+  ps -axo command= | grep -qE "^([^ ]*/)?herdr (session attach|--session) $1$"
+}
+
+# Launching Ghostty cold opens a blank initial window; "reuse" attaches the
+# session in that window instead of leaving it behind.
+open_window() {
+  local session=$1 title=$2 mode=$3
+
+  osascript - "$(command -v herdr)" "$session" "$title" "$mode" >/dev/null <<'EOF'
+on run argv
+  set attachCmd to item 1 of argv & " session attach " & item 2 of argv
+  set title to item 3 of argv
+  tell application "Ghostty"
+    if item 4 of argv is "reuse" then
+      repeat 50 times
+        if (count of windows) > 0 then exit repeat
+        delay 0.1
+      end repeat
+      if (count of windows) is 0 then error "Ghostty opened no initial window"
+      set term to focused terminal of selected tab of window 1
+      input text attachCmd to term
+      send key "enter" to term
+    else
+      set cfg to new surface configuration
+      set initial input of cfg to attachCmd & "\n"
+      set win to new window with configuration cfg
+      set term to focused terminal of selected tab of win
+    end if
+    perform action "set_tab_title:" & title on term
+  end tell
+end run
+EOF
+  log_ok "opened $title"
+}
+
+log_section "Sessions"
+for entry in "${SESSIONS[@]}"; do
+  ensure_session "${entry%%|*}"
+done
+
+log_section "Workspaces"
+for entry in "${WORKSPACES[@]}"; do
+  IFS='|' read -r session label dir <<<"$entry"
+  ensure_workspace "$session" "$label" "$dir"
+done
+
+log_section "Windows"
+mode=new
+pgrep -x ghostty >/dev/null || mode=reuse
+for entry in "${SESSIONS[@]}"; do
+  IFS='|' read -r session title <<<"$entry"
+  if session_attached "$session"; then
+    log_dim "$title already open"
+  else
+    open_window "$session" "$title" "$mode"
+    mode=new
+  fi
+done
