@@ -45,7 +45,6 @@ keybind = super+8=unbind
 keybind = super+digit_9=unbind
 keybind = super+9=unbind
 
-# Colors for my eyes
+# Background
 background-blur = true
 background-opacity = 0.95
-theme = light:USGC-HIGHK,dark:USGC-RETICLE-DIM
