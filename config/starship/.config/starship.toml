@@ -13,7 +13,7 @@ disabled = false
 time_format = "%Y-%m-%d %H:%M:%S"
 utc_time_offset = "0"
 format = '❬[$time UTC]($style)❭'
-style = "yellow"
+style = "cyan"
 
 [hostname]
 disabled = false
