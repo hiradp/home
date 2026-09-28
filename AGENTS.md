@@ -66,12 +66,6 @@ All scripts (except `bootstrap`, which inlines its own copy because it runs befo
 
 `bin/tmux-sessionizer` is a substantial script that creates tmux sessions from `.tmux-config.yaml` files (or auto-discovers from subdirectories). Full schema is documented in the script header — read it before changing layout/pane logic. Supports preset layouts (`main-horizontal` etc.), recursive tree layouts (split maps with `panes`), and absolute / `~`-prefixed `dir` values.
 
-### tmux colours
-
-Dark only, all of it in `.tmux.conf`. The *surface* (`@bg`/`@fg`/`status-bg`/`pane-border-style`) is set inline near the top of the Style section. There used to be `themes/{light,dark}.conf` and a `bin/tmux-theme` watcher that swapped them on macOS appearance changes; both are gone, so don't reintroduce a `~/.config/tmux/themes` lookup.
-
-`@theme` is the per-session *accent*, mapping the **session name** to a status-bar colour, re-evaluated per session via `#{E:@theme}`: `planetscale` → red, `hiradp` → green, and everything else → blue.
-
 ## Commit style
 
 Conventional Commits with a tool-scoped prefix: `feat(nvim): …`, `chore(brew): …`, `fix(tmux): …`, `style(home): …`. Match recent `git log` exactly when in doubt. Commits are typically tight and single-purpose.
