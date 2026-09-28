@@ -53,3 +53,6 @@ keybind = super+9=unbind
 # Background
 background-blur = true
 background-opacity = 0.95
+
+# Follow macOS light/dark appearance
+theme = light:Tomorrow,dark:Tomorrow Night
