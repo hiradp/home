@@ -16,7 +16,8 @@ window-height = 100
 window-width = 300
 window-padding-x = 8
 window-padding-y = 8
-window-save-state = always
+# herdr holds the state and `desk` rebuilds it; restored windows are dead shells.
+window-save-state = never
 
 # MacOS specific settings
 macos-option-as-alt = left
