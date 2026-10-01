@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# desk - open the default Herdr sessions, one Ghostty window each
+# desk - open the default Herdr sessions, one Ghostty tab each
 #
 # Idempotent: creates whatever sessions and workspaces are missing, opens a
-# Ghostty window for each session that has no attached client, and leaves
+# Ghostty tab for each session that has no attached client, and leaves
 # everything that already exists alone.
 
 set -euo pipefail
@@ -11,7 +11,7 @@ set -euo pipefail
 DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
 source "$DOTFILES/lib/log.sh"
 
-# session|Ghostty window title
+# session|Ghostty tab title
 SESSIONS=(
   "hiradp|🔥 hiradp"
   "planetscale|🪐 PlanetScale"
@@ -24,16 +24,22 @@ WORKSPACES=(
   "hiradp|🌲 git-forest|$HOME/Code/hiradp/git-forest"
   "planetscale|🪐 planetscale|$HOME/Code/planetscale"
   "planetscale|🕵️‍♀️ psprobe|$HOME/Code/planetscale/lib/psprobe"
+  "planetscale|👀 review|$HOME/Code/planetscale/src/.reviews"
 )
 
 usage() {
   cat <<'EOF'
-desk - open the default Herdr sessions, one Ghostty window each
+desk - open the default Herdr sessions, one Ghostty tab each
 
-Usage: desk
+Usage: desk [stop]
 
-Creates missing sessions and workspaces, then opens a Ghostty window for
-each session that isn't already attached. Safe to run at any time.
+Creates missing sessions and workspaces, then opens a Ghostty tab for
+each session that isn't already attached. Uses the front window, creating
+one if needed. Safe to run at any time.
+
+stop  Stop and delete the hiradp and planetscale sessions, terminating
+      their commands and removing saved workspace state. Repository files
+      are untouched. Run from a shell outside Herdr.
 EOF
 }
 
@@ -42,8 +48,10 @@ fail() {
   exit 1
 }
 
+(($# <= 1)) || fail "expected at most one argument"
+
 case "${1:-}" in
-"") ;;
+"" | stop) ;;
 -h | --help)
   usage
   exit 0
@@ -56,6 +64,31 @@ esac
 
 command -v herdr >/dev/null 2>&1 || fail "herdr is not installed"
 command -v jq >/dev/null 2>&1 || fail "jq is not installed"
+
+stop_sessions() {
+  local sessions entry session
+
+  [[ ${HERDR_ENV:-} != 1 ]] ||
+    fail "run desk stop from a shell outside Herdr so shutdown can finish"
+
+  sessions=$(herdr session list --json)
+  log_section "Resetting sessions"
+  for entry in "${SESSIONS[@]}"; do
+    session=${entry%%|*}
+    if jq -e --arg name "$session" \
+      '.sessions[] | select(.name == $name and .running)' <<<"$sessions" >/dev/null; then
+      herdr session stop "$session" >/dev/null
+    fi
+    herdr session delete "$session" >/dev/null
+    log_ok "reset $session"
+  done
+}
+
+if [[ ${1:-} == stop ]]; then
+  stop_sessions
+  exit 0
+fi
+
 [[ -d /Applications/Ghostty.app ]] || fail "Ghostty is not installed"
 
 session_running() {
@@ -103,7 +136,7 @@ session_attached() {
 
 # Launching Ghostty cold opens a blank initial window; "reuse" attaches the
 # session in that window instead of leaving it behind.
-open_window() {
+open_tab() {
   local session=$1 title=$2 mode=$3
 
   osascript - "$(command -v herdr)" "$session" "$title" "$mode" >/dev/null <<'EOF'
@@ -123,8 +156,13 @@ on run argv
     else
       set cfg to new surface configuration
       set initial input of cfg to attachCmd & "\n"
-      set win to new window with configuration cfg
-      set term to focused terminal of selected tab of win
+      if (count of windows) is 0 then
+        set win to new window with configuration cfg
+        set term to focused terminal of selected tab of win
+      else
+        set sessionTab to new tab in front window with configuration cfg
+        set term to focused terminal of sessionTab
+      end if
     end if
     perform action "set_tab_title:" & title on term
   end tell
@@ -144,7 +182,7 @@ for entry in "${WORKSPACES[@]}"; do
   ensure_workspace "$session" "$label" "$dir"
 done
 
-log_section "Windows"
+log_section "Tabs"
 mode=new
 pgrep -x ghostty >/dev/null || mode=reuse
 for entry in "${SESSIONS[@]}"; do
@@ -152,7 +190,7 @@ for entry in "${SESSIONS[@]}"; do
   if session_attached "$session"; then
     log_dim "$title already open"
   else
-    open_window "$session" "$title" "$mode"
+    open_tab "$session" "$title" "$mode"
     mode=new
   fi
 done
