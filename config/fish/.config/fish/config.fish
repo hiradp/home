@@ -44,9 +44,9 @@ starship init fish | source
 # --- languages ---
 # Go Lang
 set -x GOPATH $HOME/.local/go
-set -U fish_user_paths $GOPATH/bin $fish_user_paths
+fish_add_path $GOPATH/bin
 # Rust
-set -U fish_user_paths $HOME/.cargo/bin $fish_user_paths
+fish_add_path $HOME/.cargo/bin
 
 # The next line updates PATH for the Google Cloud SDK.
 if test -f ~/.local/opt/google-cloud-sdk/path.fish.inc
