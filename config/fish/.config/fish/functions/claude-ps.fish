@@ -4,7 +4,7 @@ function claude-ps --wraps=claude --description 'claude: second identity in ~/.c
     # profile logs in separately from the default `claude` (which leaves the var
     # unset — see AGENTS.md); that separation is the whole point. Only login,
     # sessions and history diverge — settings + statusline are shared, since
-    # `home link` symlinks ~/.claude-ps/settings.json to the tracked file.
+    # `home link` symlinks ~/.claude-ps/settings.json to the file `bots link` generates.
     # Function-scoped (`set -fx`) so it never leaks into the interactive shell.
     set -fx CLAUDE_CONFIG_DIR $HOME/.claude-ps
     command claude $argv
