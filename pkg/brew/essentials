@@ -3,6 +3,7 @@ bash
 bottom
 btop
 eza
+fastfetch
 fd
 fish
 fzf
@@ -16,7 +17,6 @@ jq
 just
 lazygit
 libpq
-neofetch
 neovim
 pnpm
 ripgrep
