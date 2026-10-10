@@ -60,7 +60,7 @@ All scripts (except `bootstrap`, which inlines its own copy because it runs befo
 
 ### Two-remote setup
 
-`origin` points to the **private** mirror `git@github.com:hiradp/home-private.git`; `upstream` points to the **public** `git@github.com:hiradp/home.git`. `home setup` configures these automatically when the user has access to the private repo. `main` tracks `origin/main`. To publish a subset of private commits to upstream, use the `manage-upstream` skill at `.claude/skills/manage-upstream/SKILL.md` — do not push to `upstream` ad-hoc.
+`origin` points to the **private** mirror `git@github.com:hiradp/home-private.git`; `public` points to the **public** `git@github.com:hiradp/home.git`. `home setup` configures these automatically when the user has access to the private repo. `main` tracks `origin/main`. Publishing is a deliberate `git push public main` by the user — do not push to `public` ad-hoc.
 
 ### tmux-sessionizer
 
