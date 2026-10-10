@@ -20,6 +20,7 @@ neofetch
 neovim
 pnpm
 ripgrep
+shellcheck
 starship
 stow
 tmux
