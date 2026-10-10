@@ -5,7 +5,7 @@ set -euo pipefail
 DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
 BOTS_DIR="${BOTS_DIR:-$HOME/Code/hiradp/bots}"
 BOTS_REPO="${BOTS_REPO:-git@github.com:hiradp/bots.git}"
-DEFAULT_FOLDERS="atuin bots fish ghostty git nvim rex starship tmux"
+DEFAULT_FOLDERS="atuin bots fish ghostty git nvim rex starship tmux zed"
 
 # Source shared libraries
 source "$DOTFILES/lib/log.sh"
