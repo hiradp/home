@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v uv &>/dev/null; then
+  log_info "Upgrading uv..."
+  uv self update
+else
+  log_info "Installing uv..."
+  curl -LsSf https://astral.sh/uv/install.sh | env UV_NO_MODIFY_PATH=1 sh
+fi
+
+log_ok "$("$HOME/.local/bin/uv" --version)"
