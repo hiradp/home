@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# desk - open the default Herdr sessions, one Ghostty tab each
+# desk-herdr - open the default Herdr sessions, one Ghostty tab each
 #
 # Idempotent: creates whatever sessions and workspaces are missing, opens a
 # Ghostty tab for each session that has no attached client, and leaves
@@ -29,9 +29,9 @@ WORKSPACES=(
 
 usage() {
   cat <<'EOF'
-desk - open the default Herdr sessions, one Ghostty tab each
+desk-herdr - open the default Herdr sessions, one Ghostty tab each
 
-Usage: desk [stop]
+Usage: desk-herdr [stop]
 
 Creates missing sessions and workspaces, then opens a Ghostty tab for
 each session that isn't already attached. Uses the front window, creating
@@ -44,7 +44,7 @@ EOF
 }
 
 fail() {
-  log_error "desk: $*"
+  log_error "desk-herdr: $*"
   exit 1
 }
 
@@ -69,7 +69,7 @@ stop_sessions() {
   local sessions entry session
 
   [[ ${HERDR_ENV:-} != 1 ]] ||
-    fail "run desk stop from a shell outside Herdr so shutdown can finish"
+    fail "run desk --herdr stop from a shell outside Herdr so shutdown can finish"
 
   sessions=$(herdr session list --json)
   log_section "Resetting sessions"
