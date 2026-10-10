@@ -10,7 +10,7 @@ set -euo pipefail
 DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
 source "$DOTFILES/lib/log.sh"
 
-SESSION="main"
+SESSION="🦖 main"
 
 # Rex's CLI starts the login shell, which is zsh; the terminals here run fish.
 PANE_SHELL="/opt/homebrew/bin/fish"
