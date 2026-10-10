@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+GIT_FOREST_DIR="${GIT_FOREST_DIR:-$HOME/Code/hiradp/git-forest}"
+
+if [[ ! -d "$GIT_FOREST_DIR/.git" ]]; then
+  log_info "Cloning git-forest..."
+  mkdir -p "$(dirname "$GIT_FOREST_DIR")"
+  git clone https://github.com/hiradp/git-forest.git "$GIT_FOREST_DIR"
+fi
+
+log_info "Installing git-forest..."
+just --justfile "$GIT_FOREST_DIR/justfile" install
+
+log_ok "$(git-forest --version 2>/dev/null || echo "git-forest installed")"
