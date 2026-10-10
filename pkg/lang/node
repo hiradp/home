@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v node &>/dev/null; then
+  log_info "Node already installed: $(node --version)"
+else
+  log_info "Installing Node via Homebrew..."
+  brew install node
+  log_ok "Node $(node --version)"
+fi
