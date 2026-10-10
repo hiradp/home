@@ -1,0 +1,2 @@
+-- Hirad's Rex configuration
+-- Apply changes with `rex config reload`.
