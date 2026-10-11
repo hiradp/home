@@ -30,4 +30,4 @@ Commands:
   help                  Show this help message
 ```
 
-Coding agent configuration (Pi, Claude Code, Codex, herdr) lives in a separate private repository and is linked automatically by `home setup`.
+Coding agent configuration (Pi, Claude Code, Codex) lives in a separate private repository and is linked automatically by `home setup`.
