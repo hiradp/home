@@ -5,6 +5,7 @@ set -euo pipefail
 DOTFILES="${DOTFILES:-$HOME/Code/hiradp/home}"
 BOTS_DIR="${BOTS_DIR:-$HOME/Code/hiradp/bots}"
 BOTS_REPO="${BOTS_REPO:-git@github.com:hiradp/bots.git}"
+WORK_DIR="${WORK_DIR:-$HOME/Code/planetscale}"
 DEFAULT_FOLDERS="atuin bots desk fish ghostty git herdr nvim rex starship tmux zed"
 
 # Source shared libraries
@@ -74,6 +75,25 @@ cmd_install() {
 }
 
 cmd_setup() {
+  local work_repo=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    --work)
+      if [[ -z "${2:-}" ]]; then
+        log_error "--work needs the work repo's clone URL"
+        exit 1
+      fi
+      work_repo="$2"
+      shift 2
+      ;;
+    *)
+      log_error "Unknown setup option: $1"
+      exit 1
+      ;;
+    esac
+  done
+
   log_banner "Home Setup"
 
   log_section "Installing Homebrew"
@@ -82,11 +102,20 @@ cmd_setup() {
   log_section "Setting up SSH keys"
   _setup_ssh
 
+  log_section "Installing fonts"
+  _setup_fonts
+
   log_section "Configuring remotes"
   _setup_remotes
 
   log_section "Cloning bots"
   _setup_bots
+
+  # Before install and link, so both chain to the work repo on this first run.
+  if [[ -n "$work_repo" ]]; then
+    log_section "Cloning work"
+    _setup_work "$work_repo"
+  fi
 
   log_section "Installing brew packages"
   cmd_install
@@ -168,7 +197,8 @@ home - dotfiles manager
 Usage: home <command> [args]
 
 Commands:
-  setup                 First-time setup (install + link)
+  setup [--work <url>]  First-time setup (install + link); --work also clones
+                        the work repo from <url> to \$WORK_DIR
   install [type]        Install packages (essentials, casks, langs, tools, all)
   link [folders...]     Link configs to ~ using stow (default: all)
   upgrade               Upgrade brew + Neovim, then commit + push lazy-lock.json
@@ -183,6 +213,7 @@ Environment:
 
 Examples:
   home setup                First-time machine setup
+  home setup --work <url>   Same, and clone the work repo first
   home install              Install all packages (and work, if present)
   home install essentials   Install only CLI tools
   home install casks        Install only GUI apps
@@ -226,9 +257,11 @@ _setup_ssh() {
       chmod 644 "$ssh_dir/id_ed25519.pub"
       log_ok "SSH keys copied from iCloud"
     else
-      log_warn "SSH keys not found in iCloud vault"
+      # Every later clone goes over SSH, so there is nothing to do without it.
+      log_error "SSH keys not found in iCloud vault"
       log_dim "Expected: $vault_dir"
-      return 0
+      log_dim "Sign in to iCloud Drive, wait for the vault to download, then run setup again"
+      return 1
     fi
   fi
 
@@ -247,6 +280,40 @@ EOF
   ssh-add --apple-use-keychain "$ssh_dir/id_ed25519" 2>/dev/null || true
 }
 
+# Licensed fonts cannot come from Homebrew or live in this repo, so they sit in
+# iCloud next to the SSH keys. Missing fonts only change how things look, so
+# this warns rather than stops.
+_setup_fonts() {
+  local vault_dir="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Home/fonts"
+  local fonts_dir="$HOME/Library/Fonts"
+  local font
+  local name
+  local found=0
+
+  if [[ ! -d "$vault_dir" ]]; then
+    log_warn "Fonts not found in iCloud"
+    log_dim "Expected: $vault_dir"
+    return 0
+  fi
+
+  mkdir -p "$fonts_dir"
+  while IFS= read -r -d '' font; do
+    found=1
+    name=$(basename "$font")
+    if [[ -f "$fonts_dir/$name" ]]; then
+      continue
+    fi
+    cp "$font" "$fonts_dir/$name"
+    log_ok "Installed $name"
+  done < <(find "$vault_dir" -type f \( -name '*.otf' -o -name '*.ttf' \) -print0)
+
+  if [[ "$found" -eq 0 ]]; then
+    log_warn "No font files in $vault_dir"
+  else
+    log_info "Fonts up to date"
+  fi
+}
+
 _setup_bots() {
   if [[ -d "$BOTS_DIR/.git" ]]; then
     log_info "Repo exists at $BOTS_DIR"
@@ -260,6 +327,23 @@ _setup_bots() {
   mkdir -p "$(dirname "$BOTS_DIR")"
   git clone "$BOTS_REPO" "$BOTS_DIR"
   log_ok "Cloned to $BOTS_DIR"
+}
+
+_setup_work() {
+  local repo="$1"
+
+  if [[ -d "$WORK_DIR/.git" ]]; then
+    log_info "Repo exists at $WORK_DIR"
+    return 0
+  fi
+  if [[ -e "$WORK_DIR" ]]; then
+    log_error "Work path exists but is not a Git repo: $WORK_DIR"
+    return 1
+  fi
+
+  mkdir -p "$(dirname "$WORK_DIR")"
+  git clone "$repo" "$WORK_DIR"
+  log_ok "Cloned to $WORK_DIR"
 }
 
 _setup_remotes() {
@@ -300,7 +384,7 @@ _install_tools() {
 }
 
 _work_bin() {
-  echo "${WORK_DIR:-$HOME/Code/planetscale}/bin/work"
+  echo "$WORK_DIR/bin/work"
 }
 
 _has_work() {
@@ -325,7 +409,7 @@ main() {
   shift || true
 
   case "$cmd" in
-  setup) cmd_setup ;;
+  setup) cmd_setup "$@" ;;
   install) cmd_install "$@" ;;
   link) cmd_link "$@" ;;
   upgrade) cmd_upgrade ;;

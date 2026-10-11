@@ -7,7 +7,7 @@ DESK_DIR="${DESK_DIR:-$HOME/Code/hiradp/desk}"
 if [[ ! -d "$DESK_DIR/.git" ]]; then
   log_info "Cloning desk..."
   mkdir -p "$(dirname "$DESK_DIR")"
-  git clone https://github.com/hiradp/desk.git "$DESK_DIR"
+  git clone git@github.com:hiradp/desk.git "$DESK_DIR"
 fi
 
 log_info "Installing desk..."

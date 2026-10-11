@@ -3,6 +3,9 @@
 # Bootstrap script for setting up a fresh Mac
 # Usage: curl -fsSL https://raw.githubusercontent.com/hiradp/home/main/bin/bootstrap | bash
 #
+# Arguments are passed to `home setup`:
+#   curl -fsSL .../bin/bootstrap | bash -s -- --work <url>
+#
 set -euo pipefail
 
 REPO_URL="https://github.com/hiradp/home.git"
@@ -73,7 +76,7 @@ else
 fi
 
 log_section "Running setup"
-"$DOTFILES/bin/home" setup </dev/tty
+"$DOTFILES/bin/home" setup "$@" </dev/tty
 
 log_section "Connecting to ZeroTier"
 "$DOTFILES/bin/home" connect
