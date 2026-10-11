@@ -29,8 +29,8 @@ cmd_link() {
     esac
 
     log_info "Linking $folder..."
-    $stow -d "$DOTFILES/config" -D "$folder" -t "$HOME" 2>/dev/null || true
-    $stow -d "$DOTFILES/config" "$folder" -t "$HOME"
+    $stow -d "$DOTFILES/config" --ignore='\.DS_Store' -D "$folder" -t "$HOME" 2>/dev/null || true
+    $stow -d "$DOTFILES/config" --ignore='\.DS_Store' "$folder" -t "$HOME"
   done
 
   log_ok "Linked"
