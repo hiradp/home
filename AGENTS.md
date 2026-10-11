@@ -50,7 +50,9 @@ Agent configuration lives in the `bots` repository, cloned to `$BOTS_DIR` (defau
 
 `pkg/brew/{essentials,cask}` are plain newline-separated text files; `#` comments and blank lines are skipped. `pkg/lang/*` are shell snippets (one per runtime: go, node, rust, zig) that get **sourced** (not executed) from `_install_langs`, so they share the parent shell's environment and `log_*` helpers.
 
-`pkg/tool/*` follow the same pattern for standalone tools installed outside Homebrew (e.g. cursor CLI, git-forest, desk). Sourced from `_install_tools`.
+`pkg/tool/*` follow the same pattern for standalone tools installed outside Homebrew (e.g. cursor CLI, git-forest, desk, pi). Sourced from `_install_tools`.
+
+`pkg/tool/pi` installs Pi from npm at the version `$BOTS_DIR/pi/package.json` pins, and only when Pi is missing. Upgrades belong to the `upgrade-pi` skill in `bots`, which moves the runtime and that pin together; Homebrew's formula would drift ahead of it on every `home upgrade`.
 
 Everything here must be tap-free — plain `brew install` off homebrew-core or a cask. A package that needs its own tap belongs somewhere else or nowhere; carrying a tap file for one binary is what got `dark-notify` dropped.
 

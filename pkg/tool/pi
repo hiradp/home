@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# The extensions in the bots repo are built against one exact Pi release, so a
+# fresh machine gets that release rather than the newest. An installed Pi is
+# left alone: upgrading it is the job of the upgrade-pi skill in bots, which
+# moves the runtime and the pin together.
+PI_PACKAGE="@earendil-works/pi-coding-agent"
+PI_MANIFEST="$BOTS_DIR/pi/package.json"
+
+if command -v pi &>/dev/null; then
+  log_info "Pi already installed: $(pi --version)"
+elif [[ ! -f "$PI_MANIFEST" ]]; then
+  log_warn "Bots repo not found, skipping Pi"
+  log_dim "Expected: $PI_MANIFEST"
+else
+  PI_VERSION=$(jq -er --arg pkg "$PI_PACKAGE" '.dependencies[$pkg]' "$PI_MANIFEST")
+  log_info "Installing Pi $PI_VERSION..."
+  npm install --global "$PI_PACKAGE@$PI_VERSION"
+  log_ok "Pi $(pi --version)"
+fi
