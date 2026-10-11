@@ -42,13 +42,13 @@ Claude Code's tracked config — `settings.json`, the statusline, and the global
 
 ### Bots (agent config)
 
-Agent configuration lives in the `bots` repository, cloned to `$BOTS_DIR` (default `~/Code/hiradp/bots`) from `$BOTS_REPO`. It has its own `bin/bots` CLI, and this repo only chains to it, the same way it chains to `work`: `home setup` clones it and runs `bots setup`, the `bots` entry in `DEFAULT_FOLDERS` makes `home link` run `bots link`, and `home upgrade` runs `bots upgrade`. Pi's config (Stowed into `~/.pi/agent`), Claude's config (see below), Codex's config (including the `config.managed.toml` merge into `~/.codex/config.toml`), herdr's `config.toml`, and the skills shared across those agents live there; keep agent settings, extensions, skills, and their linking logic in that repository. This repo keeps only what is not agent config: Homebrew packages (including `herdr`), the `claude-ps` fish wrapper, and `bin/desk`, which builds the default terminal layout: `desk` runs `bin/desk-rex` (one Rex session with a tab per role) and `desk --herdr` runs `bin/desk-herdr` (the herdr sessions, one Ghostty tab each, one plain-shell workspace per repo).
+Agent configuration lives in the `bots` repository, cloned to `$BOTS_DIR` (default `~/Code/hiradp/bots`) from `$BOTS_REPO`. It has its own `bin/bots` CLI, and this repo only chains to it, the same way it chains to `work`: `home setup` clones it and runs `bots setup`, the `bots` entry in `DEFAULT_FOLDERS` makes `home link` run `bots link`, and `home upgrade` runs `bots upgrade`. Pi's config (Stowed into `~/.pi/agent`), Claude's config (see below), Codex's config (including the `config.managed.toml` merge into `~/.codex/config.toml`), herdr's `config.toml`, and the skills shared across those agents live there; keep agent settings, extensions, skills, and their linking logic in that repository. This repo keeps only what is not agent config: Homebrew packages (including `herdr`), the `claude-ps` fish wrapper, and the personal config for `desk` (`config/desk`), the CLI in `hiradp/desk` that builds the Rex workspace; `pkg/tool/desk` installs it, and the config includes the work targets from `$WORK_DIR/config/desk/desk.toml`.
 
 ### Package lists
 
 `pkg/brew/{essentials,cask}` are plain newline-separated text files; `#` comments and blank lines are skipped. `pkg/lang/*` are shell snippets (one per runtime: go, node, rust, zig) that get **sourced** (not executed) from `_install_langs`, so they share the parent shell's environment and `log_*` helpers.
 
-`pkg/tool/*` follow the same pattern for standalone tools installed outside Homebrew (e.g. cursor CLI, git-forest). Sourced from `_install_tools`.
+`pkg/tool/*` follow the same pattern for standalone tools installed outside Homebrew (e.g. cursor CLI, git-forest, desk). Sourced from `_install_tools`.
 
 Everything here must be tap-free — plain `brew install` off homebrew-core or a cask. A package that needs its own tap belongs somewhere else or nowhere; carrying a tap file for one binary is what got `dark-notify` dropped.
 

@@ -1,0 +1,27 @@
+backend = "rex"
+shell   = ["/opt/homebrew/bin/fish", "-C", "{command}"]
+include = ["~/Code/planetscale/config/desk/desk.toml"]
+
+[main]
+label = "🦖 main"
+
+[main.personal]
+icon = "🚀"
+dir  = "~/Code/hiradp"
+mode = "startup"
+
+[main.home]
+icon = "🏡"
+dir  = "~/Code/hiradp/home"
+
+[main.bots]
+icon = "🤖"
+dir  = "~/Code/hiradp/bots"
+
+[main.git-forest]
+icon = "🌲"
+dir  = "~/Code/hiradp/git-forest"
+
+[main.desk]
+icon = "🖥️"
+dir  = "~/Code/hiradp/desk"

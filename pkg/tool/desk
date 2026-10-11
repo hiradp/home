@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+DESK_DIR="${DESK_DIR:-$HOME/Code/hiradp/desk}"
+
+if [[ ! -d "$DESK_DIR/.git" ]]; then
+  log_info "Cloning desk..."
+  mkdir -p "$(dirname "$DESK_DIR")"
+  git clone https://github.com/hiradp/desk.git "$DESK_DIR"
+fi
+
+log_info "Installing desk..."
+just --justfile "$DESK_DIR/justfile" install
+
+log_ok "$(desk --version 2>/dev/null || echo "desk installed")"

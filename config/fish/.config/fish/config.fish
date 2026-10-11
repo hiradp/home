@@ -32,6 +32,10 @@ if status is-interactive
     if type -q git-forest
         git-forest completions fish | source
     end
+
+    if type -q desk
+        desk completions fish | source
+    end
 end
 
 if test -f $WORK_DIR/config/fish/config.fish
