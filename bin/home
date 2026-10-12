@@ -107,11 +107,6 @@ cmd_setup() {
   log_section "Setting up SSH keys"
   _setup_ssh
 
-  if [[ "$server" -eq 1 ]]; then
-    log_section "Setting up server"
-    _setup_server
-  fi
-
   log_section "Installing fonts"
   _setup_fonts
 
@@ -129,6 +124,12 @@ cmd_setup() {
 
   log_section "Installing brew packages"
   cmd_install
+
+  # After install, which is what puts Tailscale on the machine.
+  if [[ "$server" -eq 1 ]]; then
+    log_section "Setting up server"
+    _setup_server
+  fi
 
   log_section "Setting up bots"
   _run_bots setup
@@ -180,24 +181,30 @@ cmd_upgrade() {
 }
 
 cmd_connect() {
-  local zt_file="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Home/zerotier-network-id"
+  local state=""
 
-  if [[ ! -f "$zt_file" ]]; then
-    log_dim "ZeroTier network ID file not found, skipping"
+  # Only the Homebrew daemon is ours to log in. Any other Tailscale, like the
+  # one MDM puts on the work laptop, is on someone else's tailnet.
+  if ! _has_tailscaled; then
+    log_dim "Tailscale is not from Homebrew, skipping"
     return 0
   fi
 
-  local network_id
-  network_id=$(<"$zt_file")
+  sudo brew services start tailscale
 
-  if [[ -z "$network_id" ]]; then
-    log_warn "ZeroTier network ID file is empty"
-    return 1
+  # The daemon takes a moment to open its socket after the service starts.
+  for _ in {1..10}; do
+    state=$(sudo tailscale status --json 2>/dev/null | jq -r '.BackendState') && [[ -n "$state" ]] && break
+    sleep 1
+  done
+
+  if [[ "$state" == "Running" ]]; then
+    log_info "Already on the tailnet"
+  else
+    log_info "Logging in to Tailscale..."
+    sudo tailscale up
+    log_ok "Connected to Tailscale"
   fi
-
-  log_info "Connecting to ZeroTier network..."
-  sudo zerotier-cli join "$network_id"
-  log_ok "Connected to ZeroTier network"
 }
 
 cmd_help() {
@@ -210,11 +217,11 @@ Commands:
   setup [--work <url>] [--server]
                         First-time setup (install + link); --work also clones
                         the work repo from <url> to \$WORK_DIR; --server also
-                        turns on key-only SSH for an always-on machine
+                        turns on Tailscale SSH for an always-on machine
   install [type]        Install packages (essentials, casks, langs, tools, all)
   link [folders...]     Link configs to ~ using stow (default: all)
   upgrade               Upgrade brew + Neovim, then commit + push lazy-lock.json
-  connect               Connect to ZeroTier network (ID from iCloud)
+  connect               Log in to the Tailscale tailnet (browser login)
   help                  Show this help message
 
 Environment:
@@ -293,41 +300,19 @@ EOF
   ssh-add --apple-use-keychain "$ssh_dir/id_ed25519" 2>/dev/null || true
 }
 
-# An always-on machine is reached over SSH. Every machine set up from the vault
-# holds the same key, so authorizing this machine's own key lets the others in.
-# Passwords go off before sshd comes up, so it never listens with them on.
+# An always-on machine is reached over Tailscale SSH, which only the Homebrew
+# daemon can serve. Who may connect is set by the tailnet's ACLs.
 _setup_server() {
-  local ssh_dir="$HOME/.ssh"
-  local pub_key="$ssh_dir/id_ed25519.pub"
-  local authorized_keys="$ssh_dir/authorized_keys"
-  local sshd_conf="/etc/ssh/sshd_config.d/000-home.conf"
-  local sshd_plist="/System/Library/LaunchDaemons/ssh.plist"
-  local sshd_settings
-
-  if grep -qxF "$(<"$pub_key")" "$authorized_keys" 2>/dev/null; then
-    log_info "Vault key already authorized"
-  else
-    cat "$pub_key" >>"$authorized_keys"
-    chmod 600 "$authorized_keys"
-    log_ok "Vault key authorized"
+  if ! _has_tailscaled; then
+    log_warn "Tailscale is not from Homebrew, so Tailscale SSH stays off"
+    return 0
   fi
 
-  # Both are needed: with PAM on, keyboard-interactive still takes a password.
-  sshd_settings=$'PasswordAuthentication no\nKbdInteractiveAuthentication no'
-  if [[ "$(cat "$sshd_conf" 2>/dev/null)" == "$sshd_settings" ]]; then
-    log_info "Password logins already off"
-  else
-    echo "$sshd_settings" | sudo tee "$sshd_conf" >/dev/null
-    log_ok "Password logins turned off"
-  fi
+  # Tailscale SSH is a setting on a logged-in node, so the login comes first.
+  cmd_connect
 
-  if launchctl print system/com.openssh.sshd &>/dev/null; then
-    log_info "Remote Login already on"
-  else
-    sudo launchctl enable system/com.openssh.sshd
-    sudo launchctl bootstrap system "$sshd_plist"
-    log_ok "Remote Login turned on"
-  fi
+  sudo tailscale set --ssh
+  log_ok "Tailscale SSH turned on"
 }
 
 # Licensed fonts cannot come from Homebrew or live in this repo, so they sit in
@@ -435,6 +420,10 @@ _install_tools() {
 
 _work_bin() {
   echo "$WORK_DIR/bin/work"
+}
+
+_has_tailscaled() {
+  brew list --formula tailscale &>/dev/null
 }
 
 _has_work() {

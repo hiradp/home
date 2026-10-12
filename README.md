@@ -26,14 +26,13 @@ To clone the work repo as part of the same run, pass its URL:
 curl -fsSL https://raw.githubusercontent.com/hiradp/home/main/bin/bootstrap | bash -s -- --work <url>
 ```
 
-On an always-on machine, add `--server` to turn on Remote Login with keys only;
-the vault key is authorized, so any other machine set up this way can SSH in.
+On an always-on machine, add `--server` to turn on Tailscale SSH, so any other
+machine on the tailnet can SSH in. Who may connect is set by the tailnet's ACLs.
 
 What setup cannot do, to finish by hand:
 
 - Install [Rex](https://www.superlogical.com/rex), which `desk` runs on.
 - Log in to `gh`, `claude`, `claude-ps`, `codex`, `pi` and `atuin`.
-- Authorize the machine's new node on the ZeroTier network.
 
 ## Usage
 
@@ -46,7 +45,7 @@ Commands:
   setup [--work <url>] [--server]
                         First-time setup (install + link); --work also clones
                         the work repo from <url> to $WORK_DIR; --server also
-                        turns on key-only SSH for an always-on machine
+                        turns on Tailscale SSH for an always-on machine
   install [type]        Install packages (essentials, casks, langs, tools, all)
   link [folders...]     Link configs to ~ using stow (default: all)
   help                  Show this help message

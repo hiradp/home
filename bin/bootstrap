@@ -78,7 +78,7 @@ fi
 log_section "Running setup"
 "$DOTFILES/bin/home" setup "$@" </dev/tty
 
-log_section "Connecting to ZeroTier"
+log_section "Connecting to Tailscale"
 "$DOTFILES/bin/home" connect
 
 log_banner "Bootstrap complete"

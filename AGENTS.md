@@ -9,18 +9,20 @@ Personal dotfiles, managed by the `home` CLI in `bin/home`. Most of the repo is 
 ## Common commands
 
 ```bash
-home setup [--work <url>] [--server] # First-time machine setup (brew + ssh + server + fonts + remotes + bots clone + work clone + install + bots setup + link)
+home setup [--work <url>] [--server] # First-time machine setup (brew + ssh + fonts + remotes + bots clone + work clone + install + server + bots setup + link)
 home install [type]       # Install packages: essentials | casks | langs | tools | all (default); runs `work install` when $WORK_DIR exists
 home link [folders...]    # Stow configs into $HOME (default: all in $DEFAULT_FOLDERS); `bots` runs `bots link`
 home upgrade              # git pull --ff-only, `bots upgrade`, brew update/upgrade, nvim Lazy! sync; runs `work upgrade` when $WORK_DIR exists
-home connect              # Join ZeroTier network using ID stored in iCloud
+home connect              # Log in to the Tailscale tailnet (browser login)
 ```
 
 `bin/bootstrap` is the curl-piped fresh-Mac entrypoint: it installs Xcode CLI tools, clones the repo to `$DOTFILES` (default `~/Code/hiradp/home`), then runs `home setup` with any arguments it was given.
 
 `home setup` stops when the SSH keys are missing from the iCloud vault, because `bots`, `desk`, `git-forest` and the work repo all clone over SSH. Fonts work the same way but only warn when absent: `_setup_fonts` copies every `.otf` and `.ttf` under the vault's `Home/fonts` into `~/Library/Fonts`, which is how licensed fonts get installed without living in this repo; free ones go in `pkg/brew/cask`. The work repo is cloned only when `--work <url>` names it: the URL is an argument, never a default, so this public repo does not carry it. The clone lands before install and link so both chain to `work` on the first run.
 
-`--server` marks an always-on machine that is reached remotely, and `_setup_server` holds what only such a machine needs. Today that is inbound SSH: it appends the machine's own `id_ed25519.pub` to `~/.ssh/authorized_keys` (every machine copies the same key from the vault, so this lets the others in), writes `/etc/ssh/sshd_config.d/000-home.conf` to turn off password and keyboard-interactive logins, then turns on Remote Login through `launchctl`. The order matters: sshd never comes up with passwords on. It needs `sudo`, and each step skips itself when already done.
+`--server` marks an always-on machine that is reached remotely, and `_setup_server` holds what only such a machine needs. Today that is inbound SSH over Tailscale: it runs `home connect` to log the node in, then `tailscale set --ssh`. It runs after install, which is what puts Tailscale on the machine, and it needs `sudo`. Who may connect is decided by the tailnet's ACLs, not by this repo; macOS Remote Login is not touched.
+
+Tailscale is the Homebrew formula (the `tailscaled` daemon, run as a root `brew services` service), because it is the only macOS build that can serve Tailscale SSH. `pkg/tool/tailscale` installs it only when the machine has no Tailscale at all: the work laptop gets the app from MDM, so it is left alone there, and `home connect` skips any Tailscale that Homebrew did not install.
 
 ## Architecture
 
@@ -52,7 +54,7 @@ Agent configuration lives in the `bots` repository, cloned to `$BOTS_DIR` (defau
 
 `pkg/brew/{essentials,cask}` are plain newline-separated text files; `#` comments and blank lines are skipped. `pkg/lang/*` are shell snippets (one per runtime: go, node, rust, zig) that get **sourced** (not executed) from `_install_langs`, so they share the parent shell's environment and `log_*` helpers.
 
-`pkg/tool/*` follow the same pattern for standalone tools installed outside Homebrew (e.g. cursor CLI, git-forest, desk, pi). Sourced from `_install_tools`.
+`pkg/tool/*` follow the same pattern for standalone tools installed outside Homebrew (e.g. cursor CLI, git-forest, desk, pi), and for a Homebrew package that needs a condition a plain list cannot express (tailscale). Sourced from `_install_tools`.
 
 `pkg/tool/pi` installs Pi from npm at the version `$BOTS_DIR/pi/package.json` pins, and only when Pi is missing. Upgrades belong to the `upgrade-pi` skill in `bots`, which moves the runtime and that pin together; Homebrew's formula would drift ahead of it on every `home upgrade`.
 

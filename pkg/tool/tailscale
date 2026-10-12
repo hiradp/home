@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Homebrew's formula is the headless daemon, the only macOS build that can
+# serve Tailscale SSH. A machine that already has Tailscale some other way
+# keeps it: the work laptop gets the app from MDM, and a second copy would
+# fight it.
+if brew list --formula tailscale &>/dev/null; then
+  log_info "Tailscale already installed: $(tailscale version | head -n 1)"
+elif [[ -d /Applications/Tailscale.app ]] || command -v tailscale &>/dev/null; then
+  log_info "Tailscale already installed outside Homebrew, leaving it alone"
+else
+  log_info "Installing Tailscale..."
+  brew install tailscale
+  log_ok "Tailscale $(tailscale version | head -n 1)"
+fi
