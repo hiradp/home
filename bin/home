@@ -76,9 +76,14 @@ cmd_install() {
 
 cmd_setup() {
   local work_repo=""
+  local server=0
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
+    --server)
+      server=1
+      shift
+      ;;
     --work)
       if [[ -z "${2:-}" ]]; then
         log_error "--work needs the work repo's clone URL"
@@ -101,6 +106,11 @@ cmd_setup() {
 
   log_section "Setting up SSH keys"
   _setup_ssh
+
+  if [[ "$server" -eq 1 ]]; then
+    log_section "Setting up server"
+    _setup_server
+  fi
 
   log_section "Installing fonts"
   _setup_fonts
@@ -197,8 +207,10 @@ home - dotfiles manager
 Usage: home <command> [args]
 
 Commands:
-  setup [--work <url>]  First-time setup (install + link); --work also clones
-                        the work repo from <url> to \$WORK_DIR
+  setup [--work <url>] [--server]
+                        First-time setup (install + link); --work also clones
+                        the work repo from <url> to \$WORK_DIR; --server also
+                        turns on key-only SSH for an always-on machine
   install [type]        Install packages (essentials, casks, langs, tools, all)
   link [folders...]     Link configs to ~ using stow (default: all)
   upgrade               Upgrade brew + Neovim, then commit + push lazy-lock.json
@@ -214,6 +226,7 @@ Environment:
 Examples:
   home setup                First-time machine setup
   home setup --work <url>   Same, and clone the work repo first
+  home setup --server       Same, and turn on key-only SSH
   home install              Install all packages (and work, if present)
   home install essentials   Install only CLI tools
   home install casks        Install only GUI apps
@@ -278,6 +291,43 @@ EOF
   fi
 
   ssh-add --apple-use-keychain "$ssh_dir/id_ed25519" 2>/dev/null || true
+}
+
+# An always-on machine is reached over SSH. Every machine set up from the vault
+# holds the same key, so authorizing this machine's own key lets the others in.
+# Passwords go off before sshd comes up, so it never listens with them on.
+_setup_server() {
+  local ssh_dir="$HOME/.ssh"
+  local pub_key="$ssh_dir/id_ed25519.pub"
+  local authorized_keys="$ssh_dir/authorized_keys"
+  local sshd_conf="/etc/ssh/sshd_config.d/000-home.conf"
+  local sshd_plist="/System/Library/LaunchDaemons/ssh.plist"
+  local sshd_settings
+
+  if grep -qxF "$(<"$pub_key")" "$authorized_keys" 2>/dev/null; then
+    log_info "Vault key already authorized"
+  else
+    cat "$pub_key" >>"$authorized_keys"
+    chmod 600 "$authorized_keys"
+    log_ok "Vault key authorized"
+  fi
+
+  # Both are needed: with PAM on, keyboard-interactive still takes a password.
+  sshd_settings=$'PasswordAuthentication no\nKbdInteractiveAuthentication no'
+  if [[ "$(cat "$sshd_conf" 2>/dev/null)" == "$sshd_settings" ]]; then
+    log_info "Password logins already off"
+  else
+    echo "$sshd_settings" | sudo tee "$sshd_conf" >/dev/null
+    log_ok "Password logins turned off"
+  fi
+
+  if launchctl print system/com.openssh.sshd &>/dev/null; then
+    log_info "Remote Login already on"
+  else
+    sudo launchctl enable system/com.openssh.sshd
+    sudo launchctl bootstrap system "$sshd_plist"
+    log_ok "Remote Login turned on"
+  fi
 }
 
 # Licensed fonts cannot come from Homebrew or live in this repo, so they sit in

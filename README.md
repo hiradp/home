@@ -26,6 +26,9 @@ To clone the work repo as part of the same run, pass its URL:
 curl -fsSL https://raw.githubusercontent.com/hiradp/home/main/bin/bootstrap | bash -s -- --work <url>
 ```
 
+On an always-on machine, add `--server` to turn on Remote Login with keys only;
+the vault key is authorized, so any other machine set up this way can SSH in.
+
 What setup cannot do, to finish by hand:
 
 - Install [Rex](https://www.superlogical.com/rex), which `desk` runs on.
@@ -40,8 +43,10 @@ home - dotfiles manager
 Usage: home <command> [args]
 
 Commands:
-  setup [--work <url>]  First-time setup (install + link); --work also clones
-                        the work repo from <url> to $WORK_DIR
+  setup [--work <url>] [--server]
+                        First-time setup (install + link); --work also clones
+                        the work repo from <url> to $WORK_DIR; --server also
+                        turns on key-only SSH for an always-on machine
   install [type]        Install packages (essentials, casks, langs, tools, all)
   link [folders...]     Link configs to ~ using stow (default: all)
   help                  Show this help message
